@@ -1,3 +1,4 @@
+import 'package:face_log/in_app_browser.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:face_log/widgets/status_banner.dart';
@@ -18,6 +19,7 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
   bool _isInitialized = false;
   String _statusMessage = 'Initializing camera...';
   bool _showVideoLibrary = false;
+  bool _showBrowser = false;
 
   @override
   void initState() {
@@ -85,6 +87,10 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
     setState(() => _showVideoLibrary = !_showVideoLibrary);
   }
 
+  void _toggleBrowser() {
+    setState(() => _showBrowser = !_showBrowser);
+  }
+
   @override
   void dispose() {
     _cameraController?.dispose();
@@ -102,12 +108,21 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
         children: [
           StatusBanner(message: _statusMessage, isRecording: _isRecording),
           Expanded(
-            child: CameraArea(
-              isInitialized: _isInitialized,
-              isRecording: _isRecording,
-              showVideoLibrary: _showVideoLibrary,
-              controller: _cameraController,
-              onToggleLibrary: _toggleVideoLibrary,
+            child: Stack(
+              children: [
+                CameraArea(
+                  isInitialized: _isInitialized,
+                  isRecording: _isRecording,
+                  showVideoLibrary: _showVideoLibrary,
+                  controller: _cameraController,
+                  onToggleLibrary: _toggleVideoLibrary,
+                ),
+                if (_showBrowser)
+                  InAppBrowser(
+                    url: 'https://google.com',
+                    onClose: _toggleBrowser,
+                  ),
+              ],
             ),
           ),
           Controls(
@@ -115,6 +130,7 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
             isRecording: _isRecording,
             onToggleLibrary: _toggleVideoLibrary,
             onToggleRecording: _toggleRecording,
+            onOpenBrowser: _toggleBrowser,
           ),
         ],
       ),

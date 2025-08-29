@@ -7,12 +7,14 @@ class Controls extends StatelessWidget {
     required this.isRecording,
     required this.onToggleLibrary,
     required this.onToggleRecording,
+    required this.onOpenBrowser,
   });
 
   final bool isInitialized;
   final bool isRecording;
   final VoidCallback onToggleLibrary;
   final VoidCallback onToggleRecording;
+  final VoidCallback onOpenBrowser;
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +37,11 @@ class Controls extends StatelessWidget {
               color: Colors.white,
             ),
           ),
-          const SizedBox(width: 56),
+          FloatingActionButton(
+            onPressed: isInitialized ? onOpenBrowser : null,
+            backgroundColor: Colors.blue,
+            child: const Icon(Icons.open_in_browser, color: Colors.white),
+          ),
         ],
       ),
     );
