@@ -1,16 +1,87 @@
-# face_log
+# FaceLog – Flutter App
 
-A new Flutter project.
+This app records face videos using the device’s **front camera** and saves them locally.
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
+## Setup
 
-A few resources to get you started if this is your first Flutter project:
+### Requirements
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+* Flutter (latest stable)
+* Xcode (for iOS)
+* Android Studio (for Android)
+* Physical device (camera support is limited on simulators/emulators)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### Install packages
+
+```bash
+flutter pub get
+```
+
+### Verify setup
+
+```bash
+flutter doctor
+```
+
+---
+
+## Running
+
+### Android
+
+```bash
+flutter run -d <android_device>
+```
+
+### iOS
+
+* Run normally with:
+
+```bash
+flutter run -d <ios_device>
+```
+
+* **Important**: In **Debug mode** the app may crash if you swipe-close it and reopen from the Home screen. This is a known issue with the camera plugin.
+
+    * To test cold starts, use:
+
+```bash
+flutter run --profile -d <ios_device>
+```
+
+---
+
+## Permissions
+
+Make sure `ios/Runner/Info.plist` includes:
+
+```xml
+<key>NSCameraUsageDescription</key>
+<string>Camera is used to record face videos.</string>
+<key>NSMicrophoneUsageDescription</key>
+<string>Microphone is used to record audio with videos.</string>
+```
+
+On Android, the camera and microphone permissions are handled by the `camera` plugin.
+
+---
+
+## Build for release
+
+### iOS
+
+```bash
+flutter build ios --release
+```
+
+Open in Xcode for signing & distribution.
+
+### Android
+
+```bash
+flutter build apk --release
+flutter build appbundle --release
+```
+
