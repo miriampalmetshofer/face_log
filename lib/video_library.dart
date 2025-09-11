@@ -1,3 +1,4 @@
+import 'package:face_log/services/firebase_storage_service.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
@@ -14,6 +15,7 @@ class VideoLibrary extends StatefulWidget {
 
 class _VideoLibraryState extends State<VideoLibrary> {
   List<String> _recordedVideos = [];
+  final FirebaseStorageService _storageService = FirebaseStorageService();
 
   @override
   void initState() {
@@ -83,6 +85,28 @@ class _VideoLibraryState extends State<VideoLibrary> {
         );
       },
     );
+  }
+
+  Future<void> _uploadVideo(String filePath) async {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Uploading...')),
+    );
+    try {
+      await _storageService.uploadVideo(filePath);
+      if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Upload successful!')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Upload failed.')),
+        );
+      }
+    }
   }
 
   String _formatFileSize(int bytes) {
@@ -210,6 +234,9 @@ class _VideoLibraryState extends State<VideoLibrary> {
                           case 'delete':
                             _showDeleteConfirmation(videoPath);
                             break;
+                          case 'upload':
+                            _uploadVideo(videoPath);
+                            break;
                         }
                       },
                       itemBuilder: (context) => [
@@ -220,6 +247,16 @@ class _VideoLibraryState extends State<VideoLibrary> {
                               Icon(Icons.share),
                               SizedBox(width: 8),
                               Text('Share'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuItem(
+                          value: 'upload',
+                          child: Row(
+                            children: [
+                              Icon(Icons.cloud_upload),
+                              SizedBox(width: 8),
+                              Text('Upload'),
                             ],
                           ),
                         ),

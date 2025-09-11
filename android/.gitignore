@@ -13,3 +13,6 @@ key.properties
 **/*.keystore
 **/*.jks
 .kotlin
+
+# Google Services
+/app/google-services.json

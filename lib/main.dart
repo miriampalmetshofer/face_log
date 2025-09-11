@@ -1,9 +1,12 @@
 import 'package:face_log/permissions_request.dart';
 import 'package:flutter/material.dart';
 import 'package:face_log/screens/face_recording_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp();
 
   await requestPermissions();
 
