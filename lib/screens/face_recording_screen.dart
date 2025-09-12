@@ -119,7 +119,7 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
                 ),
                 if (_showBrowser)
                   InAppBrowser(
-                    url: 'https://google.com',
+                    url: 'https://www.instagram.com/accounts/login/?hl=en',
                     onClose: _toggleBrowser,
                   ),
               ],
