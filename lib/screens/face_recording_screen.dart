@@ -1,8 +1,8 @@
 import 'package:face_log/in_app_browser.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:face_log/video_library.dart';
 import 'package:face_log/widgets/status_banner.dart';
-import 'package:face_log/widgets/camera_area.dart';
 import 'package:face_log/widgets/controls.dart';
 import 'package:face_log/services/camera_io.dart';
 
@@ -97,6 +97,19 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
     super.dispose();
   }
 
+  Widget _decorated(Widget child, {Color? borderColor, Color? bg}) {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: (borderColor ?? Colors.grey.shade300), width: 2),
+        color: bg,
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: child,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -110,13 +123,8 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
           Expanded(
             child: Stack(
               children: [
-                CameraArea(
-                  isInitialized: _isInitialized,
-                  isRecording: _isRecording,
-                  showVideoLibrary: _showVideoLibrary,
-                  controller: _cameraController,
-                  onToggleLibrary: _toggleVideoLibrary,
-                ),
+                if (_showVideoLibrary)
+                  VideoLibrary(onToggleLibrary: _toggleVideoLibrary),
                 if (_showBrowser)
                   InAppBrowser(
                     url: 'https://www.instagram.com/accounts/login/?hl=en',
