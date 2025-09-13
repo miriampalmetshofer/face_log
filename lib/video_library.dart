@@ -53,10 +53,10 @@ class _VideoLibraryState extends State<VideoLibrary> {
         setState(() {
           _recordedVideos.remove(filePath);
         });
-        debugPrint('Video deleted: \$filePath');
+        debugPrint('Video deleted: $filePath');
       }
     } catch (e) {
-      debugPrint('Error deleting video: \$e');
+      debugPrint('Error deleting video: $e');
     }
   }
 
@@ -65,21 +65,21 @@ class _VideoLibraryState extends State<VideoLibrary> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Delete Video'),
+          title: const Text('Video löschen'),
           content: const Text(
-            'Are you sure you want to delete this video? This action cannot be undone.',
+            'Möchten Sie dieses Video wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.',
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
+              child: const Text('Abbrechen'),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
                 _deleteVideo(filePath);
               },
-              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+              child: const Text('Löschen', style: TextStyle(color: Colors.red)),
             ),
           ],
         );
@@ -89,21 +89,21 @@ class _VideoLibraryState extends State<VideoLibrary> {
 
   Future<void> _uploadVideo(String filePath) async {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Uploading...')),
+      const SnackBar(content: Text('Wird hochgeladen...')),
     );
     try {
       await _storageService.uploadVideo(filePath);
       if (mounted) {
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Upload successful!')),
+          const SnackBar(content: Text('Upload erfolgreich!')),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Upload failed.')),
+          const SnackBar(content: Text('Upload fehlgeschlagen.')),
         );
       }
     }
@@ -123,13 +123,13 @@ class _VideoLibraryState extends State<VideoLibrary> {
     final difference = now.difference(date);
 
     if (difference.inDays > 0) {
-      return '${difference.inDays} day${difference.inDays == 1 ? '' : 's'} ago';
+      return 'vor ${difference.inDays} Tag${difference.inDays == 1 ? '' : 'en'}';
     } else if (difference.inHours > 0) {
-      return '${difference.inHours} hour${difference.inHours == 1 ? '' : 's'} ago';
+      return 'vor ${difference.inHours} Stunde${difference.inHours == 1 ? '' : 'n'}';
     } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} minute${difference.inMinutes == 1 ? '' : 's'} ago';
+      return 'vor ${difference.inMinutes} Minute${difference.inMinutes == 1 ? '' : 'n'}';
     } else {
-      return 'Just now';
+      return 'Gerade eben';
     }
   }
 
@@ -159,7 +159,7 @@ class _VideoLibraryState extends State<VideoLibrary> {
                 const Icon(Icons.video_library, color: Colors.blue),
                 const SizedBox(width: 8),
                 const Text(
-                  'Video Library',
+                  'Videobibliothek',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -187,7 +187,7 @@ class _VideoLibraryState extends State<VideoLibrary> {
                     Icon(Icons.videocam_off, size: 64, color: Colors.grey),
                     SizedBox(height: 16),
                     Text(
-                      'No videos recorded yet',
+                      'Noch keine Videos aufgenommen',
                       style: TextStyle(fontSize: 16, color: Colors.grey),
                     ),
                   ],
@@ -220,7 +220,7 @@ class _VideoLibraryState extends State<VideoLibrary> {
                             style: TextStyle(color: Colors.grey.shade600),
                           );
                         }
-                        return const Text('Loading...');
+                        return const Text('Wird geladen...');
                       },
                     ),
                     trailing: PopupMenuButton<String>(
@@ -229,7 +229,7 @@ class _VideoLibraryState extends State<VideoLibrary> {
                           case 'share':
                             Share.shareXFiles([
                               XFile(videoPath),
-                            ], text: 'Face Recording Video');
+                            ], text: 'Gesichtsaufnahme Video');
                             break;
                           case 'delete':
                             _showDeleteConfirmation(videoPath);
@@ -246,7 +246,7 @@ class _VideoLibraryState extends State<VideoLibrary> {
                             children: [
                               Icon(Icons.share),
                               SizedBox(width: 8),
-                              Text('Share'),
+                              Text('Teilen'),
                             ],
                           ),
                         ),
@@ -256,7 +256,7 @@ class _VideoLibraryState extends State<VideoLibrary> {
                             children: [
                               Icon(Icons.cloud_upload),
                               SizedBox(width: 8),
-                              Text('Upload'),
+                              Text('Hochladen'),
                             ],
                           ),
                         ),
@@ -267,7 +267,7 @@ class _VideoLibraryState extends State<VideoLibrary> {
                               Icon(Icons.delete, color: Colors.red),
                               SizedBox(width: 8),
                               Text(
-                                'Delete',
+                                'Löschen',
                                 style: TextStyle(color: Colors.red),
                               ),
                             ],

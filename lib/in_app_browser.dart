@@ -20,7 +20,7 @@ class _InAppBrowserState extends State<InAppBrowser> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('In-App Browser'),
+        title: const Text('In-App-Browser'),
         actions: [
           IconButton(
             icon: const Icon(Icons.close),

@@ -20,10 +20,11 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
   CameraController? _cameraController;
   bool _isRecording = false;
   bool _isInitialized = false;
-  String _statusMessage = 'Initializing camera...';
+  String _statusMessage = 'Kamera wird initialisiert...';
   bool _showVideoLibrary = false;
   bool _showBrowser = false;
   String _browserUrl = '';
+  CameraLensDirection? _cameraLensDirectiondirection;
 
   Timer? _recordingTimer;
   int _remainingSeconds = AppConfig.maxRecordingDuration;
@@ -45,7 +46,7 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
     try {
       final selectedCamera = await CameraIO.pickFrontOrFirst();
       if (selectedCamera == null) {
-        setState(() => _statusMessage = 'No cameras available on this device');
+        setState(() => _statusMessage = 'Keine Kameras auf diesem Gerät verfügbar');
         return;
       }
 
@@ -61,11 +62,11 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
       setState(() {
         _cameraController = controller;
         _isInitialized = true;
-        _statusMessage =
-        'Camera ready (${selectedCamera.lensDirection == CameraLensDirection.front ? "Front" : "Back"})';
+        _cameraLensDirectiondirection = selectedCamera.lensDirection;
+        _statusMessage = 'Kamera bereit (${_cameraLensDirectiondirection == CameraLensDirection.front ? "Front" : "Rück"}kamera)';
       });
     } catch (e) {
-      setState(() => _statusMessage = 'Failed to initialize camera: $e');
+      setState(() => _statusMessage = 'Kamera konnte nicht initialisiert werden: $e');
     }
   }
 
@@ -79,18 +80,18 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
         final videoFile = await controller.stopVideoRecording();
         setState(() {
           _isRecording = false;
-          _statusMessage = 'Saving video...';
+          _statusMessage = 'Video wird gespeichert...';
           _remainingSeconds = AppConfig.maxRecordingDuration;
         });
 
         await CameraIO.saveToAppDocs(videoFile);
-        setState(() => _statusMessage = 'Video saved!');
+        setState(() => _statusMessage = 'Video gespeichert!');
 
         Future.delayed(const Duration(seconds: 3), () {
-          if (mounted) setState(() => _statusMessage = 'Camera ready');
+          if (mounted) setState(() => _statusMessage = '${_cameraLensDirectiondirection == CameraLensDirection.front ? "Front" : "Rück"}kamera bereit');
         });
       } else {
-        setState(() => _statusMessage = 'Recording...');
+        setState(() => _statusMessage = 'Aufnahme...');
         await controller.startVideoRecording();
         setState(() => _isRecording = true);
         _recordingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -105,7 +106,7 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
         });
       }
     } catch (e) {
-      setState(() => _statusMessage = 'Error: $e');
+      setState(() => _statusMessage = 'Fehler: $e');
     }
   }
 
@@ -136,8 +137,8 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Recording Stopped'),
-        content: const Text('The recording has been automatically stopped after 5 minutes.'),
+        title: const Text('Aufnahme gestoppt'),
+        content: const Text('Die Aufnahme wurde nach 5 Minuten automatisch gestoppt.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
