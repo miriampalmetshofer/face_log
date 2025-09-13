@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:face_log/config.dart';
 import 'package:face_log/in_app_browser.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
@@ -22,10 +25,20 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
   bool _showBrowser = false;
   String _browserUrl = '';
 
+  Timer? _recordingTimer;
+  int _remainingSeconds = AppConfig.maxRecordingDuration;
+
   @override
   void initState() {
     super.initState();
     _initializeCamera();
+  }
+
+  @override
+  void dispose() {
+    _cameraController?.dispose();
+    _recordingTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _initializeCamera() async {
@@ -62,10 +75,12 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
 
     try {
       if (_isRecording) {
+        _recordingTimer?.cancel();
         final videoFile = await controller.stopVideoRecording();
         setState(() {
           _isRecording = false;
           _statusMessage = 'Saving video...';
+          _remainingSeconds = AppConfig.maxRecordingDuration;
         });
 
         await CameraIO.saveToAppDocs(videoFile);
@@ -78,6 +93,16 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
         setState(() => _statusMessage = 'Recording...');
         await controller.startVideoRecording();
         setState(() => _isRecording = true);
+        _recordingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+          setState(() {
+            _remainingSeconds--;
+          });
+          if (_remainingSeconds <= 0) {
+            timer.cancel();
+            _toggleRecording();
+            _showRecordingStoppedDialog();
+          }
+        });
       }
     } catch (e) {
       setState(() => _statusMessage = 'Error: $e');
@@ -101,10 +126,26 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
     });
   }
 
-  @override
-  void dispose() {
-    _cameraController?.dispose();
-    super.dispose();
+  String _formatDuration(int seconds) {
+    final minutes = (seconds / 60).floor();
+    final remainingSeconds = seconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
+  }
+
+  void _showRecordingStoppedDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Recording Stopped'),
+        content: const Text('The recording has been automatically stopped after 5 minutes.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _decorated(Widget child, {Color? borderColor, Color? bg}) {
@@ -140,6 +181,17 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
       appBar: AppBar(
         title: StatusBanner(message: _statusMessage, isRecording: _isRecording),
         backgroundColor: Colors.grey.shade200,
+        actions: [
+          if (_isRecording)
+            Padding(
+              padding: const EdgeInsets.only(right: 20.0),
+              child: Center(
+                  child: Text(
+                _formatDuration(_remainingSeconds),
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              )),
+            ),
+        ],
       ),
       body: SafeArea(
         child: Column(
