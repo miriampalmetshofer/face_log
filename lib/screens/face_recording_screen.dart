@@ -138,38 +138,17 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('FaceLog - Face Recording'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: StatusBanner(message: _statusMessage, isRecording: _isRecording),
+        backgroundColor: Colors.grey.shade200,
       ),
       body: SafeArea(
         child: Column(
           children: [
-            StatusBanner(message: _statusMessage, isRecording: _isRecording),
             Expanded(
               child: Stack(
                 alignment: Alignment.topCenter,
                 children: [
-                  if (_isRecording)
-                    _decorated(
-                      const Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.videocam, size: 80, color: Colors.red),
-                            SizedBox(height: 16),
-                            Text(
-                              'Recording...',
-                              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.red),
-                            ),
-                            SizedBox(height: 8),
-                            Text('Click button again to stop', style: TextStyle(fontSize: 16, color: Colors.white70)),
-                          ],
-                        ),
-                      ),
-                      borderColor: Colors.red,
-                      bg: Colors.black,
-                    )
-                  else if (_showVideoLibrary)
+                  if (_showVideoLibrary)
                     VideoLibrary(onToggleLibrary: _toggleVideoLibrary)
                   else if (!_showBrowser)
                     Padding(
@@ -180,7 +159,6 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
                           _buildAppIcon('https://www.instagram.com', Icons.camera_alt, 'Instagram', Colors.pink),
                           _buildAppIcon('https://www.facebook.com', Icons.facebook, 'Facebook', Colors.blue),
                           _buildAppIcon('https://www.tiktok.com', Icons.tiktok, 'TikTok', Colors.black),
-
                         ],
                       ),
                     ),

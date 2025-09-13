@@ -8,18 +8,16 @@ class StatusBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isRecording ? Colors.red : Colors.green;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
-      color: color.withOpacity(0.1),
       child: Text(
         message,
         textAlign: TextAlign.center,
         style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w500,
-          color: color,
+          color: isRecording ? Colors.black : Colors.black,
         ),
       ),
     );

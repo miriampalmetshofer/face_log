@@ -23,12 +23,12 @@ class Controls extends StatelessWidget {
         children: [
           FloatingActionButton(
             onPressed: isInitialized ? onToggleLibrary : null,
-            backgroundColor: Colors.blue,
+            backgroundColor: Colors.blue.shade900,
             child: const Icon(Icons.video_library, color: Colors.white),
           ),
           FloatingActionButton.large(
             onPressed: isInitialized ? onToggleRecording : null,
-            backgroundColor: isRecording ? Colors.red : Colors.green,
+            backgroundColor: isRecording ? Colors.orange : Colors.blue,
             child: Icon(
               isRecording ? Icons.stop : Icons.fiber_manual_record,
               size: 40,
