@@ -5,14 +5,14 @@ class Controls extends StatelessWidget {
     super.key,
     required this.isInitialized,
     required this.isRecording,
-    required this.onToggleLibrary,
+    required this.onOpenLibrary,
     required this.onToggleRecording,
     required this.onTogglePreview,
   });
 
   final bool isInitialized;
   final bool isRecording;
-  final VoidCallback onToggleLibrary;
+  final VoidCallback onOpenLibrary;
   final VoidCallback onToggleRecording;
   final VoidCallback onTogglePreview;
 
@@ -24,7 +24,7 @@ class Controls extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           FloatingActionButton(
-            onPressed: isInitialized ? onToggleLibrary : null,
+            onPressed: isInitialized ? onOpenLibrary : null,
             backgroundColor: Colors.blue.shade900,
             child: const Icon(Icons.video_library, color: Colors.white),
           ),

@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:face_log/config.dart';
 import 'package:face_log/in_app_browser.dart';
+import 'package:face_log/screens/video_library_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
-import 'package:face_log/video_library.dart';
 import 'package:face_log/widgets/status_banner.dart';
 import 'package:face_log/widgets/controls.dart';
 import 'package:face_log/services/camera_io.dart';
@@ -21,7 +21,6 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
   bool _isRecording = false;
   bool _isInitialized = false;
   String _statusMessage = 'Kamera wird initialisiert...';
-  bool _showVideoLibrary = false;
   bool _showBrowser = false;
   bool _showCameraPreview = false;
   String _browserUrl = '';
@@ -111,10 +110,6 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
     }
   }
 
-  void _toggleVideoLibrary() {
-    setState(() => _showVideoLibrary = !_showVideoLibrary);
-  }
-
   void _toggleCameraPreview() {
     setState(() {
       _showCameraPreview = !_showCameraPreview;
@@ -126,6 +121,13 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
       _showBrowser = true;
       _browserUrl = url;
     });
+  }
+
+  void _openVideoLibrary() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const VideoLibraryScreen()),
+    );
   }
 
   void _closeBrowser() {
@@ -254,9 +256,7 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
               child: Stack(
                 alignment: Alignment.topCenter,
                 children: [
-                  if (_showVideoLibrary)
-                    VideoLibrary(onToggleLibrary: _toggleVideoLibrary)
-                  else if (_showCameraPreview)
+                  if (_showCameraPreview)
                     _buildCameraPreview()
                   else if (!_showBrowser)
                     Padding(
@@ -278,11 +278,11 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
                 ],
               ),
             ),
-            if (!_showVideoLibrary && !_showBrowser)
+            if (!_showBrowser)
               Controls(
                 isInitialized: _isInitialized,
                 isRecording: _isRecording,
-                onToggleLibrary: _toggleVideoLibrary,
+                onOpenLibrary: _openVideoLibrary,
                 onToggleRecording: _toggleRecording,
                 onTogglePreview: _toggleCameraPreview,
               ),

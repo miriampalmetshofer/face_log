@@ -5,16 +5,14 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
-class VideoLibrary extends StatefulWidget {
-  final Function onToggleLibrary;
-
-  const VideoLibrary({super.key, required this.onToggleLibrary});
+class VideoLibraryScreen extends StatefulWidget {
+  const VideoLibraryScreen({super.key});
 
   @override
-  State<VideoLibrary> createState() => _VideoLibraryState();
+  State<VideoLibraryScreen> createState() => _VideoLibraryScreenState();
 }
 
-class _VideoLibraryState extends State<VideoLibrary> {
+class _VideoLibraryScreenState extends State<VideoLibraryScreen> {
   List<String> _recordedVideos = [];
   final FirebaseStorageService _storageService = FirebaseStorageService();
 
@@ -136,49 +134,13 @@ class _VideoLibraryState extends State<VideoLibrary> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade300, width: 2),
-        color: Colors.white,
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Videobibliothek'),
       ),
-      child: Column(
+      body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.blue.shade50,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(14),
-                topRight: Radius.circular(14),
-              ),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.video_library, color: Colors.blue),
-                const SizedBox(width: 8),
-                const Text(
-                  'Videobibliothek',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue,
-                  ),
-                ),
-                const Spacer(),
-                IconButton(
-                  onPressed: () {
-                    setState(() {
-                      widget.onToggleLibrary();
-                    });
-                  },
-                  icon: const Icon(Icons.close, color: Colors.blue),
-                ),
-              ],
-            ),
-          ),
           if (_recordedVideos.isEmpty)
             const Padding(
               padding: EdgeInsets.all(32),
