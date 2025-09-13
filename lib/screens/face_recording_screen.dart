@@ -133,13 +133,14 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
               ],
             ),
           ),
-          Controls(
-            isInitialized: _isInitialized,
-            isRecording: _isRecording,
-            onToggleLibrary: _toggleVideoLibrary,
-            onToggleRecording: _toggleRecording,
-            onOpenBrowser: _toggleBrowser,
-          ),
+          if (!_showVideoLibrary && !_showBrowser)
+            Controls(
+              isInitialized: _isInitialized,
+              isRecording: _isRecording,
+              onToggleLibrary: _toggleVideoLibrary,
+              onToggleRecording: _toggleRecording,
+              onOpenBrowser: _toggleBrowser,
+            ),
         ],
       ),
     );
