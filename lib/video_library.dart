@@ -1,3 +1,4 @@
+import 'package:face_log/screens/video_review_screen.dart';
 import 'package:face_log/services/firebase_storage_service.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
@@ -226,6 +227,15 @@ class _VideoLibraryState extends State<VideoLibrary> {
                     trailing: PopupMenuButton<String>(
                       onSelected: (value) {
                         switch (value) {
+                          case 'preview':
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    VideoReviewScreen(videoPath: videoPath),
+                              ),
+                            );
+                            break;
                           case 'share':
                             Share.shareXFiles([
                               XFile(videoPath),
@@ -240,6 +250,16 @@ class _VideoLibraryState extends State<VideoLibrary> {
                         }
                       },
                       itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: 'preview',
+                          child: Row(
+                            children: [
+                              Icon(Icons.remove_red_eye),
+                              SizedBox(width: 8),
+                              Text('Vorschau'),
+                            ],
+                          ),
+                        ),
                         const PopupMenuItem(
                           value: 'share',
                           child: Row(
