@@ -1,9 +1,12 @@
+import 'dart:typed_data';
+
 import 'package:face_log/screens/video_review_screen.dart';
 import 'package:face_log/services/firebase_storage_service.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:video_thumbnail/video_thumbnail.dart';
 
 class VideoLibraryScreen extends StatefulWidget {
   const VideoLibraryScreen({super.key});
@@ -15,6 +18,7 @@ class VideoLibraryScreen extends StatefulWidget {
 class _VideoLibraryScreenState extends State<VideoLibraryScreen> {
   List<String> _recordedVideos = [];
   final FirebaseStorageService _storageService = FirebaseStorageService();
+  final Map<String, Uint8List?> _thumbnailCache = {};
 
   @override
   void initState() {
@@ -42,6 +46,22 @@ class _VideoLibraryScreenState extends State<VideoLibraryScreen> {
     } catch (e) {
       debugPrint('Error loading existing videos: $e');
     }
+  }
+
+  Future<Uint8List?> _generateThumbnail(String videoPath) async {
+    if (_thumbnailCache.containsKey(videoPath)) {
+      return _thumbnailCache[videoPath];
+    }
+
+    final thumbnail = await VideoThumbnail.thumbnailData(
+      video: videoPath,
+      imageFormat: ImageFormat.JPEG,
+      maxWidth: 128, // specify the width of the thumbnail, let the height auto-scale
+      quality: 75,
+    );
+
+    _thumbnailCache[videoPath] = thumbnail;
+    return thumbnail;
   }
 
   Future<void> _deleteVideo(String filePath) async {
@@ -167,7 +187,24 @@ class _VideoLibraryScreenState extends State<VideoLibraryScreen> {
                   final file = File(videoPath);
 
                   return ListTile(
-                    leading: const Icon(Icons.videocam, color: Colors.red),
+                    leading: FutureBuilder<Uint8List?>(
+                      future: _generateThumbnail(videoPath),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
+                          return Image.memory(
+                            snapshot.data!,
+                            width: 60,
+                            height: 60,
+                            fit: BoxFit.cover,
+                          );
+                        } else if (snapshot.hasError) {
+                          debugPrint('Error generating thumbnail for $videoPath: ${snapshot.error}');
+                          return const Icon(Icons.error, color: Colors.red);
+                        } else {
+                          return const CircularProgressIndicator(); // Placeholder while loading
+                        }
+                      },
+                    ),
                     title: Text(
                       fileName,
                       style: const TextStyle(fontWeight: FontWeight.w500),

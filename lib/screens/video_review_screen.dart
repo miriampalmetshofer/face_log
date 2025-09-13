@@ -76,18 +76,22 @@ class _VideoReviewScreenState extends State<VideoReviewScreen> {
         children: [
           // --- Video Player ---
           Center(
-            child: _controller.value.isInitialized
-                ? ConstrainedBox(
+            child: ConstrainedBox(
               constraints: const BoxConstraints(
                 maxWidth: 600.0,
                 maxHeight: 400.0,
               ),
-              child: AspectRatio(
-                aspectRatio: _controller.value.aspectRatio,
-                child: VideoPlayer(_controller),
-              ),
-            )
-                : const CircularProgressIndicator(),
+              child: _controller.value.isInitialized
+                  ? AspectRatio(
+                      aspectRatio: _controller.value.aspectRatio,
+                      child: VideoPlayer(_controller),
+                    )
+                  : AspectRatio(
+                      aspectRatio:
+                          16 / 9,
+                      child: Center(child: const CircularProgressIndicator()),
+                    ),
+            ),
           ),
 
           // --- Video Controls ---
@@ -119,15 +123,20 @@ class _VideoReviewScreenState extends State<VideoReviewScreen> {
                           icon: const Icon(Icons.replay_5, size: 35.0),
                           onPressed: () {
                             final newPosition =
-                                _controller.value.position - const Duration(seconds: 5);
+                                _controller.value.position -
+                                const Duration(seconds: 5);
                             _controller.seekTo(
-                              newPosition.isNegative ? Duration.zero : newPosition,
+                              newPosition.isNegative
+                                  ? Duration.zero
+                                  : newPosition,
                             );
                           },
                         ),
                         IconButton(
                           icon: Icon(
-                            _controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
+                            _controller.value.isPlaying
+                                ? Icons.pause
+                                : Icons.play_arrow,
                             size: 35.0,
                           ),
                           onPressed: () {
@@ -142,7 +151,8 @@ class _VideoReviewScreenState extends State<VideoReviewScreen> {
                           icon: const Icon(Icons.forward_5, size: 35.0),
                           onPressed: () {
                             final newPosition =
-                                _controller.value.position + const Duration(seconds: 5);
+                                _controller.value.position +
+                                const Duration(seconds: 5);
                             _controller.seekTo(
                               newPosition > _controller.value.duration
                                   ? _controller.value.duration
