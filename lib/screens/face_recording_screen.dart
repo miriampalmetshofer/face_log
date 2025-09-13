@@ -20,6 +20,7 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
   String _statusMessage = 'Initializing camera...';
   bool _showVideoLibrary = false;
   bool _showBrowser = false;
+  String _browserUrl = '';
 
   @override
   void initState() {
@@ -87,8 +88,17 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
     setState(() => _showVideoLibrary = !_showVideoLibrary);
   }
 
-  void _toggleBrowser() {
-    setState(() => _showBrowser = !_showBrowser);
+  void _openBrowser(String url) {
+    setState(() {
+      _showBrowser = true;
+      _browserUrl = url;
+    });
+  }
+
+  void _closeBrowser() {
+    setState(() {
+      _showBrowser = false;
+    });
   }
 
   @override
@@ -110,6 +120,20 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
     );
   }
 
+  Widget _buildAppIcon(String url, IconData icon, String label, Color color) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          icon: Icon(icon, size: 40),
+          color: color,
+          onPressed: () => _openBrowser(url),
+        ),
+        Text(label),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -117,31 +141,66 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
         title: const Text('FaceLog - Face Recording'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
-      body: Column(
-        children: [
-          StatusBanner(message: _statusMessage, isRecording: _isRecording),
-          Expanded(
-            child: Stack(
-              children: [
-                if (_showVideoLibrary)
-                  VideoLibrary(onToggleLibrary: _toggleVideoLibrary),
-                if (_showBrowser)
-                  InAppBrowser(
-                    url: 'https://www.instagram.com/accounts/login/?hl=en',
-                    onClose: _toggleBrowser,
-                  ),
-              ],
+      body: SafeArea(
+        child: Column(
+          children: [
+            StatusBanner(message: _statusMessage, isRecording: _isRecording),
+            Expanded(
+              child: Stack(
+                alignment: Alignment.topCenter,
+                children: [
+                  if (_isRecording)
+                    _decorated(
+                      const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.videocam, size: 80, color: Colors.red),
+                            SizedBox(height: 16),
+                            Text(
+                              'Recording...',
+                              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.red),
+                            ),
+                            SizedBox(height: 8),
+                            Text('Click button again to stop', style: TextStyle(fontSize: 16, color: Colors.white70)),
+                          ],
+                        ),
+                      ),
+                      borderColor: Colors.red,
+                      bg: Colors.black,
+                    )
+                  else if (_showVideoLibrary)
+                    VideoLibrary(onToggleLibrary: _toggleVideoLibrary)
+                  else if (!_showBrowser)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 30.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          _buildAppIcon('https://www.instagram.com', Icons.camera_alt, 'Instagram', Colors.pink),
+                          _buildAppIcon('https://www.facebook.com', Icons.facebook, 'Facebook', Colors.blue),
+                          _buildAppIcon('https://www.tiktok.com', Icons.tiktok, 'TikTok', Colors.black),
+
+                        ],
+                      ),
+                    ),
+                  if (_showBrowser)
+                    InAppBrowser(
+                      url: _browserUrl,
+                      onClose: _closeBrowser,
+                    ),
+                ],
+              ),
             ),
-          ),
-          if (!_showVideoLibrary && !_showBrowser)
-            Controls(
-              isInitialized: _isInitialized,
-              isRecording: _isRecording,
-              onToggleLibrary: _toggleVideoLibrary,
-              onToggleRecording: _toggleRecording,
-              onOpenBrowser: _toggleBrowser,
-            ),
-        ],
+            if (!_showVideoLibrary && !_showBrowser)
+              Controls(
+                isInitialized: _isInitialized,
+                isRecording: _isRecording,
+                onToggleLibrary: _toggleVideoLibrary,
+                onToggleRecording: _toggleRecording,
+              ),
+          ],
+        ),
       ),
     );
   }
