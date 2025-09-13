@@ -7,12 +7,14 @@ class Controls extends StatelessWidget {
     required this.isRecording,
     required this.onToggleLibrary,
     required this.onToggleRecording,
+    required this.onTogglePreview,
   });
 
   final bool isInitialized;
   final bool isRecording;
   final VoidCallback onToggleLibrary;
   final VoidCallback onToggleRecording;
+  final VoidCallback onTogglePreview;
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +36,11 @@ class Controls extends StatelessWidget {
               size: 40,
               color: Colors.white,
             ),
+          ),
+          FloatingActionButton(
+            onPressed: isInitialized ? onTogglePreview : null,
+            backgroundColor: Colors.blue.shade900,
+            child: const Icon(Icons.camera_alt, color: Colors.white),
           ),
         ],
       ),

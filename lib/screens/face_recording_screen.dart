@@ -23,6 +23,7 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
   String _statusMessage = 'Kamera wird initialisiert...';
   bool _showVideoLibrary = false;
   bool _showBrowser = false;
+  bool _showCameraPreview = false;
   String _browserUrl = '';
   CameraLensDirection? _cameraLensDirectiondirection;
 
@@ -114,6 +115,12 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
     setState(() => _showVideoLibrary = !_showVideoLibrary);
   }
 
+  void _toggleCameraPreview() {
+    setState(() {
+      _showCameraPreview = !_showCameraPreview;
+    });
+  }
+
   void _openBrowser(String url) {
     setState(() {
       _showBrowser = true;
@@ -176,6 +183,52 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
     );
   }
 
+  Widget _buildCameraPreview() {
+    if (_cameraController == null) return Container();
+
+    return _decorated(
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(14),
+                topRight: Radius.circular(14),
+              ),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.camera_alt, color: Colors.blue),
+                const SizedBox(width: 8),
+                const Text(
+                  'Kameravorschau',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue,
+                  ),
+                ),
+                const Spacer(),
+                IconButton(
+                  onPressed: _toggleCameraPreview,
+                  icon: const Icon(Icons.close, color: Colors.blue),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: _cameraController!.value.isInitialized
+                ? CameraPreview(_cameraController!)
+                : const Center(child: CircularProgressIndicator()),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -203,6 +256,8 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
                 children: [
                   if (_showVideoLibrary)
                     VideoLibrary(onToggleLibrary: _toggleVideoLibrary)
+                  else if (_showCameraPreview)
+                    _buildCameraPreview()
                   else if (!_showBrowser)
                     Padding(
                       padding: const EdgeInsets.only(top: 30.0),
@@ -229,6 +284,7 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
                 isRecording: _isRecording,
                 onToggleLibrary: _toggleVideoLibrary,
                 onToggleRecording: _toggleRecording,
+                onTogglePreview: _toggleCameraPreview,
               ),
           ],
         ),
