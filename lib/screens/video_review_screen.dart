@@ -1,6 +1,9 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+
+import '../widgets/annotation_option.dart';
 
 class VideoReviewScreen extends StatefulWidget {
   final String videoPath;
@@ -38,26 +41,56 @@ class _VideoReviewScreenState extends State<VideoReviewScreen> {
 
   @override
   Widget build(BuildContext context) {
+    const jsonString = '''{
+      "categories": [
+        {
+          "id": "umgebung",
+          "title": "Umgebung",
+          "input_type": "single_choice",
+          "options": [
+            { "id": "innenraum", "label": "Innenraum" },
+            { "id": "aussenbereich", "label": "Außenbereich" }
+          ]
+        },
+        {
+          "id": "text",
+          "title": "Text",
+          "input_type": "multiple_choice",
+          "options": [
+            { "id": "innenraum", "label": "Innenraum" },
+            { "id": "aussenbereich", "label": "Außenbereich" }
+          ]
+        }
+      ]
+    }''';
+
+    final data = json.decode(jsonString);
+    final categories = (data['categories'] as List)
+        .map((c) => AnnotationCategory.fromJson(c))
+        .toList();
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(title: const Text('Video Preview')),
       body: Column(
         children: [
+          // --- Video Player ---
           Center(
             child: _controller.value.isInitialized
                 ? ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      maxWidth: 600.0,
-                      maxHeight: 400.0,
-                    ),
-                    child: AspectRatio(
-                      aspectRatio: _controller.value.aspectRatio,
-                      child: VideoPlayer(_controller),
-                    ),
-                  )
+              constraints: const BoxConstraints(
+                maxWidth: 600.0,
+                maxHeight: 400.0,
+              ),
+              child: AspectRatio(
+                aspectRatio: _controller.value.aspectRatio,
+                child: VideoPlayer(_controller),
+              ),
+            )
                 : const CircularProgressIndicator(),
           ),
 
+          // --- Video Controls ---
           Container(
             color: Colors.white,
             child: SafeArea(
@@ -78,33 +111,23 @@ class _VideoReviewScreenState extends State<VideoReviewScreen> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 15.0),
+                    padding: const EdgeInsets.only(top: 15.0),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         IconButton(
-                          icon: const Icon(
-                            Icons.replay_5,
-                            color: Colors.black,
-                            size: 35.0,
-                          ),
+                          icon: const Icon(Icons.replay_5, size: 35.0),
                           onPressed: () {
                             final newPosition =
-                                _controller.value.position -
-                                const Duration(seconds: 5);
+                                _controller.value.position - const Duration(seconds: 5);
                             _controller.seekTo(
-                              newPosition.isNegative
-                                  ? Duration.zero
-                                  : newPosition,
+                              newPosition.isNegative ? Duration.zero : newPosition,
                             );
                           },
                         ),
                         IconButton(
                           icon: Icon(
-                            _controller.value.isPlaying
-                                ? Icons.pause
-                                : Icons.play_arrow,
-                            color: Colors.black,
+                            _controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
                             size: 35.0,
                           ),
                           onPressed: () {
@@ -116,15 +139,10 @@ class _VideoReviewScreenState extends State<VideoReviewScreen> {
                           },
                         ),
                         IconButton(
-                          icon: const Icon(
-                            Icons.forward_5,
-                            color: Colors.black,
-                            size: 35.0,
-                          ),
+                          icon: const Icon(Icons.forward_5, size: 35.0),
                           onPressed: () {
                             final newPosition =
-                                _controller.value.position +
-                                const Duration(seconds: 5);
+                                _controller.value.position + const Duration(seconds: 5);
                             _controller.seekTo(
                               newPosition > _controller.value.duration
                                   ? _controller.value.duration
@@ -134,7 +152,7 @@ class _VideoReviewScreenState extends State<VideoReviewScreen> {
                         ),
                         Text(
                           '${_printDuration(_controller.value.position)} / ${_printDuration(_controller.value.duration)}',
-                          style: const TextStyle(color: Colors.black, fontSize: 16),
+                          style: const TextStyle(fontSize: 16),
                         ),
                       ],
                     ),
@@ -142,6 +160,13 @@ class _VideoReviewScreenState extends State<VideoReviewScreen> {
                 ],
               ),
             ),
+          ),
+
+          const Divider(),
+
+          // --- Dynamic Annotation Form ---
+          Expanded(
+            child: AnnotationForm(categories: categories),
           ),
         ],
       ),
