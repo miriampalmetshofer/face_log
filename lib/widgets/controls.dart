@@ -24,11 +24,13 @@ class Controls extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           FloatingActionButton(
+            heroTag: 'library_button',
             onPressed: isInitialized ? onOpenLibrary : null,
             backgroundColor: Colors.blue.shade900,
             child: const Icon(Icons.video_library, color: Colors.white),
           ),
           FloatingActionButton.large(
+            heroTag: 'record_button',
             onPressed: isInitialized ? onToggleRecording : null,
             backgroundColor: isRecording ? Colors.orange : Colors.blue,
             child: Icon(
@@ -38,6 +40,7 @@ class Controls extends StatelessWidget {
             ),
           ),
           FloatingActionButton(
+            heroTag: 'preview_button',
             onPressed: isInitialized ? onTogglePreview : null,
             backgroundColor: Colors.blue.shade900,
             child: const Icon(Icons.camera_alt, color: Colors.white),
