@@ -1,13 +1,14 @@
-import 'dart:async';
-
 import 'package:face_log/config.dart';
 import 'package:face_log/in_app_browser.dart';
 import 'package:face_log/screens/video_library_screen.dart';
-import 'package:flutter/material.dart';
-import 'package:camera/camera.dart';
-import 'package:face_log/widgets/status_banner.dart';
-import 'package:face_log/widgets/controls.dart';
 import 'package:face_log/services/camera_io.dart';
+import 'package:face_log/services/camera_manager.dart';
+import 'package:face_log/utils/format_utils.dart';
+import 'package:face_log/widgets/camera_preview_overlay.dart';
+import 'package:face_log/widgets/controls.dart';
+import 'package:face_log/widgets/social_media_shortcuts.dart';
+import 'package:face_log/widgets/status_banner.dart';
+import 'package:flutter/material.dart';
 
 class FaceRecordingScreen extends StatefulWidget {
   const FaceRecordingScreen({super.key});
@@ -17,129 +18,113 @@ class FaceRecordingScreen extends StatefulWidget {
 }
 
 class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
-  CameraController? _cameraController;
+  final CameraManager _cameraManager = CameraManager();
+
   bool _isRecording = false;
-  bool _isInitialized = false;
   String _statusMessage = 'Kamera wird initialisiert...';
   bool _showBrowser = false;
   bool _showCameraPreview = false;
   String _browserUrl = '';
-  CameraLensDirection? _cameraLensDirectiondirection;
-
-  Timer? _recordingTimer;
   int _remainingSeconds = AppConfig.maxRecordingDuration;
 
   @override
   void initState() {
     super.initState();
+    _setupCameraManager();
     _initializeCamera();
   }
 
   @override
   void dispose() {
-    _cameraController?.dispose();
-    _recordingTimer?.cancel();
+    _cameraManager.dispose();
     super.dispose();
+  }
+
+  void _setupCameraManager() {
+    _cameraManager.onStatusChange = (message) {
+      if (mounted) {
+        setState(() => _statusMessage = message);
+      }
+    };
+
+    _cameraManager.onRecordingStateChange = (isRecording) {
+      if (mounted) {
+        setState(() => _isRecording = isRecording);
+      }
+    };
+
+    _cameraManager.onTimerTick = (seconds) {
+      if (mounted) {
+        setState(() => _remainingSeconds = seconds);
+      }
+    };
+
+    _cameraManager.onRecordingComplete = (videoFile) async {
+      await CameraIO.saveToAppDocs(videoFile);
+      if (mounted) {
+        setState(() {
+          _statusMessage = 'Video gespeichert!';
+          _remainingSeconds = AppConfig.maxRecordingDuration;
+        });
+
+        Future.delayed(const Duration(seconds: 3), () {
+          if (mounted) {
+            setState(() => _statusMessage = 'Kamera bereit');
+          }
+        });
+      }
+    };
+
+    _cameraManager.onMaxDurationReached = () {
+      _showRecordingStoppedDialog();
+    };
   }
 
   Future<void> _initializeCamera() async {
     try {
-      final selectedCamera = await CameraIO.pickFrontOrFirst();
-      if (selectedCamera == null) {
-        setState(() => _statusMessage = 'Keine Kameras auf diesem Gerät verfügbar');
-        return;
-      }
-
-      final controller = CameraController(
-        selectedCamera,
-        ResolutionPreset.high,
-        enableAudio: true,
-        imageFormatGroup: CameraIO.platformImageFormat(),
-      );
-
-      await controller.initialize();
-
-      // Stop image stream immediately after initialization to prevent buffer warnings
-      // It will automatically restart when recording or preview is enabled
-      if (!_showCameraPreview && !_isRecording) {
-        await controller.pausePreview();
-      }
-
-      setState(() {
-        _cameraController = controller;
-        _isInitialized = true;
-        _cameraLensDirectiondirection = selectedCamera.lensDirection;
-        _statusMessage = 'Kamera bereit (${_cameraLensDirectiondirection == CameraLensDirection.front ? "Front" : "Rück"}kamera)';
-      });
+      await _cameraManager.initialize();
     } catch (e) {
       setState(() => _statusMessage = 'Kamera konnte nicht initialisiert werden: $e');
     }
   }
 
   Future<void> _toggleRecording() async {
-    final controller = _cameraController;
-    if (!_isInitialized || controller == null) return;
+    if (!_cameraManager.isInitialized) return;
 
     try {
       if (_isRecording) {
-        _recordingTimer?.cancel();
-        final videoFile = await controller.stopVideoRecording();
-        setState(() {
-          _isRecording = false;
-          _statusMessage = 'Video wird gespeichert...';
-          _remainingSeconds = AppConfig.maxRecordingDuration;
-        });
-
-        await CameraIO.saveToAppDocs(videoFile);
-        setState(() => _statusMessage = 'Video gespeichert!');
-
-        // Pause preview if not showing camera preview
-        if (!_showCameraPreview) {
-          await controller.pausePreview();
-        }
-
-        Future.delayed(const Duration(seconds: 3), () {
-          if (mounted) setState(() => _statusMessage = '${_cameraLensDirectiondirection == CameraLensDirection.front ? "Front" : "Rück"}kamera bereit');
-        });
-      } else {
-        // Resume preview before recording
-        await controller.resumePreview();
-        setState(() => _statusMessage = 'Aufnahme...');
-        await controller.startVideoRecording();
-        setState(() => _isRecording = true);
-        _recordingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        final videoFile = await _cameraManager.stopRecording();
+        if (videoFile != null) {
+          await CameraIO.saveToAppDocs(videoFile);
           setState(() {
-            _remainingSeconds--;
+            _statusMessage = 'Video gespeichert!';
+            _remainingSeconds = AppConfig.maxRecordingDuration;
           });
-          if (_remainingSeconds <= 0) {
-            timer.cancel();
-            _toggleRecording();
-            _showRecordingStoppedDialog();
-          }
-        });
+
+          Future.delayed(const Duration(seconds: 3), () {
+            if (mounted) {
+              setState(() => _statusMessage = 'Kamera bereit');
+            }
+          });
+        }
+      } else {
+        await _cameraManager.startRecording();
       }
     } catch (e) {
       setState(() => _statusMessage = 'Fehler: $e');
     }
   }
 
-  void _toggleCameraPreview() async {
-    final controller = _cameraController;
-    if (controller == null) return;
-
+  Future<void> _toggleCameraPreview() async {
     final newState = !_showCameraPreview;
 
-    // Resume or pause preview based on new state
     if (newState) {
-      await controller.resumePreview();
+      await _cameraManager.resumePreview();
     } else if (!_isRecording) {
-      // Only pause if not recording
-      await controller.pausePreview();
+      await _cameraManager.pausePreview();
     }
 
-    setState(() {
-      _showCameraPreview = newState;
-    });
+    setState(() => _showCameraPreview = newState);
   }
 
   void _openBrowser(String url) {
@@ -157,15 +142,7 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
   }
 
   void _closeBrowser() {
-    setState(() {
-      _showBrowser = false;
-    });
-  }
-
-  String _formatDuration(int seconds) {
-    final minutes = (seconds / 60).floor();
-    final remainingSeconds = seconds % 60;
-    return '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
+    setState(() => _showBrowser = false);
   }
 
   void _showRecordingStoppedDialog() {
@@ -173,84 +150,13 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Aufnahme gestoppt'),
-        content: const Text('Die Aufnahme wurde nach 5 Minuten automatisch gestoppt.'),
+        content: Text(
+          'Die Aufnahme wurde nach ${AppConfig.maxRecordingDuration} Sekunden automatisch gestoppt.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _decorated(Widget child, {Color? borderColor, Color? bg}) {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: (borderColor ?? Colors.grey.shade300), width: 2),
-        color: bg,
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: child,
-    );
-  }
-
-  Widget _buildAppIcon(String url, IconData icon, String label, Color color) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        IconButton(
-          icon: Icon(icon, size: 40),
-          color: color,
-          onPressed: () => _openBrowser(url),
-        ),
-        Text(label),
-      ],
-    );
-  }
-
-  Widget _buildCameraPreview() {
-    if (_cameraController == null) return Container();
-
-    return _decorated(
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.blue.shade50,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(14),
-                topRight: Radius.circular(14),
-              ),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.camera_alt, color: Colors.blue),
-                const SizedBox(width: 8),
-                const Text(
-                  'Kameravorschau',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue,
-                  ),
-                ),
-                const Spacer(),
-                IconButton(
-                  onPressed: _toggleCameraPreview,
-                  icon: const Icon(Icons.close, color: Colors.blue),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: _cameraController!.value.isInitialized
-                ? CameraPreview(_cameraController!)
-                : const Center(child: CircularProgressIndicator()),
           ),
         ],
       ),
@@ -268,10 +174,11 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
             Padding(
               padding: const EdgeInsets.only(right: 20.0),
               child: Center(
-                  child: Text(
-                _formatDuration(_remainingSeconds),
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              )),
+                child: Text(
+                  FormatUtils.formatDuration(_remainingSeconds),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
             ),
         ],
       ),
@@ -282,20 +189,13 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
               child: Stack(
                 alignment: Alignment.topCenter,
                 children: [
-                  if (_showCameraPreview)
-                    _buildCameraPreview()
+                  if (_showCameraPreview && _cameraManager.controller != null)
+                    CameraPreviewOverlay(
+                      controller: _cameraManager.controller!,
+                      onClose: _toggleCameraPreview,
+                    )
                   else if (!_showBrowser)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 30.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          _buildAppIcon('https://www.instagram.com', Icons.camera_alt, 'Instagram', Colors.pink),
-                          _buildAppIcon('https://www.facebook.com', Icons.facebook, 'Facebook', Colors.blue),
-                          _buildAppIcon('https://www.tiktok.com', Icons.tiktok, 'TikTok', Colors.black),
-                        ],
-                      ),
-                    ),
+                    SocialMediaShortcuts(onAppTap: _openBrowser),
                   if (_showBrowser)
                     InAppBrowser(
                       url: _browserUrl,
@@ -306,7 +206,7 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
             ),
             if (!_showBrowser)
               Controls(
-                isInitialized: _isInitialized,
+                isInitialized: _cameraManager.isInitialized,
                 isRecording: _isRecording,
                 onOpenLibrary: _openVideoLibrary,
                 onToggleRecording: _toggleRecording,
