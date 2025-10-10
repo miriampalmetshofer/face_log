@@ -59,6 +59,12 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
 
       await controller.initialize();
 
+      // Stop image stream immediately after initialization to prevent buffer warnings
+      // It will automatically restart when recording or preview is enabled
+      if (!_showCameraPreview && !_isRecording) {
+        await controller.pausePreview();
+      }
+
       setState(() {
         _cameraController = controller;
         _isInitialized = true;
@@ -87,10 +93,17 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
         await CameraIO.saveToAppDocs(videoFile);
         setState(() => _statusMessage = 'Video gespeichert!');
 
+        // Pause preview if not showing camera preview
+        if (!_showCameraPreview) {
+          await controller.pausePreview();
+        }
+
         Future.delayed(const Duration(seconds: 3), () {
           if (mounted) setState(() => _statusMessage = '${_cameraLensDirectiondirection == CameraLensDirection.front ? "Front" : "Rück"}kamera bereit');
         });
       } else {
+        // Resume preview before recording
+        await controller.resumePreview();
         setState(() => _statusMessage = 'Aufnahme...');
         await controller.startVideoRecording();
         setState(() => _isRecording = true);
@@ -110,9 +123,22 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
     }
   }
 
-  void _toggleCameraPreview() {
+  void _toggleCameraPreview() async {
+    final controller = _cameraController;
+    if (controller == null) return;
+
+    final newState = !_showCameraPreview;
+
+    // Resume or pause preview based on new state
+    if (newState) {
+      await controller.resumePreview();
+    } else if (!_isRecording) {
+      // Only pause if not recording
+      await controller.pausePreview();
+    }
+
     setState(() {
-      _showCameraPreview = !_showCameraPreview;
+      _showCameraPreview = newState;
     });
   }
 
