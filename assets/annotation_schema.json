@@ -1,0 +1,80 @@
+{
+  "categories": [
+    {
+      "id": "umgebung",
+      "title": "Umgebung",
+      "input_type": "single_choice",
+      "options": [
+        { "id": "innenraum", "label": "Innenraum" },
+        { "id": "aussenraum", "label": "Außenraum" }
+      ],
+      "subcategories": [
+        {
+          "id": "lichtquelle",
+          "title": "Lichtquelle",
+          "input_type": "multiple_choice",
+          "visible_if": "umgebung:innenraum",
+          "options": [
+            { "id": "natuerlich", "label": "Natürlich" },
+            { "id": "kuenstlich", "label": "Künstlich" },
+            { "id": "gemischt", "label": "Gemischt" }
+          ]
+        },
+        {
+          "id": "lichtrichtung",
+          "title": "Lichtrichtung",
+          "input_type": "single_choice",
+          "visible_if": "umgebung:innenraum",
+          "options": [
+            { "id": "frontal", "label": "Frontal" },
+            { "id": "seitlich", "label": "Seitlich" },
+            { "id": "von_oben", "label": "Von oben" },
+            { "id": "von_unten", "label": "Von unten" }
+          ]
+        },
+        {
+          "id": "tageszeit",
+          "title": "Tageszeit",
+          "input_type": "single_choice",
+          "visible_if": "umgebung:aussenraum",
+          "options": [
+            { "id": "morgen", "label": "Morgen" },
+            { "id": "mittag", "label": "Mittag" },
+            { "id": "nachmittag", "label": "Nachmittag" },
+            { "id": "abend", "label": "Abend" },
+            { "id": "nacht", "label": "Nacht" }
+          ]
+        },
+        {
+          "id": "wetter",
+          "title": "Wetter",
+          "input_type": "multiple_choice",
+          "visible_if": "umgebung:aussenraum",
+          "options": [
+            { "id": "sonnig", "label": "Sonnig" },
+            { "id": "bewoelkt", "label": "Bewölkt" },
+            { "id": "regnerisch", "label": "Regnerisch" },
+            { "id": "schnee", "label": "Schnee" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gesichtsausdruck",
+      "title": "Gesichtsausdruck",
+      "input_type": "multiple_choice",
+      "options": [
+        { "id": "neutral", "label": "Neutral" },
+        { "id": "laecheln", "label": "Lächeln" },
+        { "id": "ernst", "label": "Ernst" },
+        { "id": "ueberrascht", "label": "Überrascht" }
+      ]
+    },
+    {
+      "id": "notizen",
+      "title": "Notizen",
+      "input_type": "text",
+      "options": []
+    }
+  ]
+}

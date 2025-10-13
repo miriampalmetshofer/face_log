@@ -1,9 +1,10 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
-import '../widgets/annotation_option.dart';
+import '../models/annotation_category.dart';
+import '../services/annotation_service.dart';
+import '../widgets/annotation_form.dart';
 
 class VideoReviewScreen extends StatefulWidget {
   final String videoPath;
@@ -16,6 +17,8 @@ class VideoReviewScreen extends StatefulWidget {
 
 class _VideoReviewScreenState extends State<VideoReviewScreen> {
   late VideoPlayerController _controller;
+  List<AnnotationCategory>? _categories;
+  bool _isLoadingSchema = true;
 
   String _printDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, "0");
@@ -31,6 +34,26 @@ class _VideoReviewScreenState extends State<VideoReviewScreen> {
       ..initialize().then((_) {
         setState(() {});
       });
+    _loadAnnotationSchema();
+  }
+
+  Future<void> _loadAnnotationSchema() async {
+    try {
+      final categories = await AnnotationService.loadSchema();
+      setState(() {
+        _categories = categories;
+        _isLoadingSchema = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingSchema = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load annotation schema: $e')),
+        );
+      }
+    }
   }
 
   @override
@@ -41,34 +64,6 @@ class _VideoReviewScreenState extends State<VideoReviewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const jsonString = '''{
-      "categories": [
-        {
-          "id": "umgebung",
-          "title": "Umgebung",
-          "input_type": "single_choice",
-          "options": [
-            { "id": "innenraum", "label": "Innenraum" },
-            { "id": "aussenbereich", "label": "Außenbereich" }
-          ]
-        },
-        {
-          "id": "text",
-          "title": "Text",
-          "input_type": "multiple_choice",
-          "options": [
-            { "id": "innenraum", "label": "Innenraum" },
-            { "id": "aussenbereich", "label": "Außenbereich" }
-          ]
-        }
-      ]
-    }''';
-
-    final data = json.decode(jsonString);
-    final categories = (data['categories'] as List)
-        .map((c) => AnnotationCategory.fromJson(c))
-        .toList();
-
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(title: const Text('Video Preview')),
@@ -176,7 +171,13 @@ class _VideoReviewScreenState extends State<VideoReviewScreen> {
 
           // --- Dynamic Annotation Form ---
           Expanded(
-            child: AnnotationForm(categories: categories),
+            child: _isLoadingSchema
+                ? const Center(child: CircularProgressIndicator())
+                : _categories != null
+                    ? AnnotationForm(categories: _categories!)
+                    : const Center(
+                        child: Text('Failed to load annotation schema'),
+                      ),
           ),
         ],
       ),
