@@ -61,6 +61,7 @@ class _AnnotationFormState extends State<AnnotationForm> {
           child: DropdownButtonFormField<String>(
             decoration: InputDecoration(
               labelText: category.title,
+              hintText: 'Bitte auswählen',
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8.0),
               ),
@@ -79,6 +80,7 @@ class _AnnotationFormState extends State<AnnotationForm> {
             onChanged: (val) {
               setState(() => answers[category.id] = val);
             },
+            hint: const Text('Bitte auswählen'),
           ),
         );
         break;
