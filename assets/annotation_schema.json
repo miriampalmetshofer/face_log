@@ -1,13 +1,19 @@
 {
   "categories": [
     {
-      "id": "umgebung",
-      "title": "1. Umgebung / Lichtbedingung",
-      "input_type": "single_choice",
-      "options": [
-        { "id": "innenraum", "label": "Innenraum" },
-        { "id": "aussenbereich", "label": "Außenbereich" }
-      ],
+      "id": "umgebung_header",
+      "title": "Umgebung / Lichtbedingung",
+      "input_type": "header",
+      "options": [],
+      "subcategories": [
+        {
+          "id": "umgebung",
+          "title": "Umgebung",
+          "input_type": "single_choice",
+          "options": [
+            { "id": "innenraum", "label": "Innenraum" },
+            { "id": "aussenbereich", "label": "Außenbereich" }
+          ],
       "subcategories": [
         {
           "id": "innenbeleuchtung_lichtquelle",
@@ -59,21 +65,31 @@
           ]
         }
       ]
+        }
+      ]
     },
     {
-      "id": "helligkeit_global",
-      "title": "2. Helligkeit",
-      "input_type": "single_choice",
-      "options": [
-        { "id": "dunkel", "label": "Dunkel (gedimmt)" },
-        { "id": "mittel", "label": "Mittel (normal)" },
-        { "id": "hell", "label": "Hell (Sonne / starke Lampe)" }
+      "id": "helligkeit",
+      "title": "Helligkeit",
+      "input_type": "header",
+      "options": [],
+      "subcategories": [
+        {
+          "id": "helligkeit_global",
+          "title": "Helligkeit",
+          "input_type": "single_choice",
+          "options": [
+            { "id": "dunkel", "label": "Dunkel (gedimmt)" },
+            { "id": "mittel", "label": "Mittel (normal)" },
+            { "id": "hell", "label": "Hell (Sonne / starke Lampe)" }
+          ]
+        }
       ]
     },
     {
       "id": "bewegung",
-      "title": "3. Bewegung / Aktivität",
-      "input_type": "text",
+      "title": "Bewegung / Aktivität",
+      "input_type": "header",
       "options": [],
       "subcategories": [
         {
@@ -106,19 +122,27 @@
     },
     {
       "id": "geraeteposition",
-      "title": "4. Geräteposition",
-      "input_type": "single_choice",
-      "options": [
-        { "id": "hand_stabil", "label": "In der Hand (stabil)" },
-        { "id": "hand_wackelig", "label": "In der Hand (wackelig)" },
-        { "id": "tisch", "label": "Am Tisch liegend" },
-        { "id": "angelehnt", "label": "An Gegenstand angelehnt" }
+      "title": "Geräteposition",
+      "input_type": "header",
+      "options": [],
+      "subcategories": [
+        {
+          "id": "geraeteposition_wahl",
+          "title": "Geräteposition",
+          "input_type": "single_choice",
+          "options": [
+            { "id": "hand_stabil", "label": "In der Hand (stabil)" },
+            { "id": "hand_wackelig", "label": "In der Hand (wackelig)" },
+            { "id": "tisch", "label": "Am Tisch liegend" },
+            { "id": "angelehnt", "label": "An Gegenstand angelehnt" }
+          ]
+        }
       ]
     },
     {
       "id": "kopf_gesicht",
-      "title": "5. Kopf- & Gesichtsposition",
-      "input_type": "text",
+      "title": "Kopf- & Gesichtsposition",
+      "input_type": "header",
       "options": [],
       "subcategories": [
         {
@@ -147,28 +171,52 @@
     },
     {
       "id": "hintergrund",
-      "title": "6. Hintergrund",
-      "input_type": "multiple_choice",
-      "options": [
-        { "id": "schlicht", "label": "Schlichter / ruhiger Hintergrund" },
-        { "id": "veraenderlich", "label": "Veränderlicher Hintergrund (bewegte Objekte, Ortswechsel)" },
-        { "id": "personen", "label": "Personen im Hintergrund" },
-        { "id": "dynamisch", "label": "Dynamischer Außenbereich (Autos, Bäume, Passanten)" }
+      "title": "Hintergrund",
+      "input_type": "header",
+      "options": [],
+      "subcategories": [
+        {
+          "id": "hintergrund_wahl",
+          "title": "Hintergrund",
+          "input_type": "multiple_choice",
+          "options": [
+            { "id": "schlicht", "label": "Schlichter / ruhiger Hintergrund" },
+            { "id": "veraenderlich", "label": "Veränderlicher Hintergrund (bewegte Objekte, Ortswechsel)" },
+            { "id": "personen", "label": "Personen im Hintergrund" },
+            { "id": "dynamisch", "label": "Dynamischer Außenbereich (Autos, Bäume, Passanten)" }
+          ]
+        }
       ]
     },
     {
       "id": "soziale_situation",
-      "title": "7. Soziale Situation",
-      "input_type": "multiple_choice",
-      "options": [
-        { "id": "gespraech", "label": "Gespräch mit jemandem" }
+      "title": "Soziale Situation",
+      "input_type": "header",
+      "options": [],
+      "subcategories": [
+        {
+          "id": "soziale_situation_wahl",
+          "title": "Soziale Situation",
+          "input_type": "multiple_choice",
+          "options": [
+            { "id": "gespraech", "label": "Gespräch mit jemandem" }
+          ]
+        }
       ]
     },
     {
       "id": "notizen",
-      "title": "8. Notizen (optional)",
-      "input_type": "text",
-      "options": []
+      "title": "Notizen (optional)",
+      "input_type": "header",
+      "options": [],
+      "subcategories": [
+        {
+          "id": "notizen_text",
+          "title": "Notizen (optional)",
+          "input_type": "text",
+          "options": []
+        }
+      ]
     }
   ]
 }

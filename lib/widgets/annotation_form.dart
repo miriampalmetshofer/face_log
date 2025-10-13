@@ -56,36 +56,75 @@ class _AnnotationFormState extends State<AnnotationForm> {
 
     switch (category.inputType) {
       case "single_choice":
-        content = Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: DropdownButtonFormField<String>(
-            decoration: InputDecoration(
-              labelText: category.title,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8.0),
+        // Use dropdown only for top-level categories that have subcategories
+        // Use radio buttons for everything else
+        if (category.visibleIf == null && category.subcategories.isNotEmpty) {
+          content = Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: DropdownButtonFormField<String>(
+              decoration: InputDecoration(
+                labelText: category.title,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12.0,
+                  vertical: 8.0,
+                ),
               ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12.0,
-                vertical: 8.0,
-              ),
+              value: answers[category.id],
+              isExpanded: true,
+              items: category.options
+                  .map((o) => DropdownMenuItem(
+                        value: o.id,
+                        child: Text(
+                          o.label,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ))
+                  .toList(),
+              onChanged: (val) {
+                setState(() => answers[category.id] = val);
+              },
+              hint: const Text('Auswählen...'),
             ),
-            value: answers[category.id],
-            isExpanded: true,
-            items: category.options
-                .map((o) => DropdownMenuItem(
-                      value: o.id,
-                      child: Text(
-                        o.label,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ))
-                .toList(),
-            onChanged: (val) {
-              setState(() => answers[category.id] = val);
-            },
-            hint: const Text('Auswählen...'),
-          ),
-        );
+          );
+        } else {
+          // Use radio buttons for subcategories
+          content = Container(
+            margin: const EdgeInsets.symmetric(vertical: 8.0),
+            padding: const EdgeInsets.all(12.0),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade400),
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  category.title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ...category.options.map((o) {
+                  return RadioListTile<String>(
+                    title: Text(o.label),
+                    value: o.id,
+                    groupValue: answers[category.id],
+                    contentPadding: EdgeInsets.zero,
+                    onChanged: (val) {
+                      setState(() => answers[category.id] = val);
+                    },
+                  );
+                }),
+              ],
+            ),
+          );
+        }
         break;
 
       case "multiple_choice":
@@ -147,6 +186,23 @@ class _AnnotationFormState extends State<AnnotationForm> {
               ),
             ),
             onChanged: (val) => setState(() => answers[category.id] = val),
+          ),
+        );
+        break;
+
+      case "header":
+        content = Padding(
+          padding: const EdgeInsets.only(top: 24.0, bottom: 8.0),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              category.title,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
           ),
         );
         break;
@@ -228,36 +284,75 @@ class _AnnotationFormContentState extends State<AnnotationFormContent> {
 
     switch (category.inputType) {
       case "single_choice":
-        content = Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: DropdownButtonFormField<String>(
-            decoration: InputDecoration(
-              labelText: category.title,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8.0),
+        // Use dropdown only for top-level categories that have subcategories
+        // Use radio buttons for everything else
+        if (category.visibleIf == null && category.subcategories.isNotEmpty) {
+          content = Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: DropdownButtonFormField<String>(
+              decoration: InputDecoration(
+                labelText: category.title,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12.0,
+                  vertical: 8.0,
+                ),
               ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12.0,
-                vertical: 8.0,
-              ),
+              value: answers[category.id],
+              isExpanded: true,
+              items: category.options
+                  .map((o) => DropdownMenuItem(
+                        value: o.id,
+                        child: Text(
+                          o.label,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ))
+                  .toList(),
+              onChanged: (val) {
+                setState(() => answers[category.id] = val);
+              },
+              hint: const Text('Auswählen...'),
             ),
-            value: answers[category.id],
-            isExpanded: true,
-            items: category.options
-                .map((o) => DropdownMenuItem(
-                      value: o.id,
-                      child: Text(
-                        o.label,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ))
-                .toList(),
-            onChanged: (val) {
-              setState(() => answers[category.id] = val);
-            },
-            hint: const Text('Auswählen...'),
-          ),
-        );
+          );
+        } else {
+          // Use radio buttons for subcategories
+          content = Container(
+            margin: const EdgeInsets.symmetric(vertical: 8.0),
+            padding: const EdgeInsets.all(12.0),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade400),
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  category.title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ...category.options.map((o) {
+                  return RadioListTile<String>(
+                    title: Text(o.label),
+                    value: o.id,
+                    groupValue: answers[category.id],
+                    contentPadding: EdgeInsets.zero,
+                    onChanged: (val) {
+                      setState(() => answers[category.id] = val);
+                    },
+                  );
+                }),
+              ],
+            ),
+          );
+        }
         break;
 
       case "multiple_choice":
@@ -319,6 +414,23 @@ class _AnnotationFormContentState extends State<AnnotationFormContent> {
               ),
             ),
             onChanged: (val) => setState(() => answers[category.id] = val),
+          ),
+        );
+        break;
+
+      case "header":
+        content = Padding(
+          padding: const EdgeInsets.only(top: 24.0, bottom: 8.0),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              category.title,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
           ),
         );
         break;
