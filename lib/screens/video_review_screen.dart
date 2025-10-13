@@ -67,119 +67,119 @@ class _VideoReviewScreenState extends State<VideoReviewScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(title: const Text('Video Preview')),
-      body: Column(
-        children: [
-          // --- Video Player ---
-          Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxWidth: 600.0,
-                maxHeight: 400.0,
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // --- Video Player ---
+            Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: 600.0,
+                  maxHeight: 400.0,
+                ),
+                child: _controller.value.isInitialized
+                    ? AspectRatio(
+                        aspectRatio: _controller.value.aspectRatio,
+                        child: VideoPlayer(_controller),
+                      )
+                    : AspectRatio(
+                        aspectRatio:
+                            16 / 9,
+                        child: Center(child: const CircularProgressIndicator()),
+                      ),
               ),
-              child: _controller.value.isInitialized
-                  ? AspectRatio(
-                      aspectRatio: _controller.value.aspectRatio,
-                      child: VideoPlayer(_controller),
-                    )
-                  : AspectRatio(
-                      aspectRatio:
-                          16 / 9,
-                      child: Center(child: const CircularProgressIndicator()),
-                    ),
             ),
-          ),
 
-          // --- Video Controls ---
-          Container(
-            color: Colors.white,
-            child: SafeArea(
-              top: false,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(
-                    height: 12.0,
-                    child: VideoProgressIndicator(
-                      _controller,
-                      allowScrubbing: true,
-                      colors: VideoProgressColors(
-                        playedColor: Theme.of(context).colorScheme.primary,
-                        bufferedColor: Colors.grey,
-                        backgroundColor: Colors.black26,
+            // --- Video Controls ---
+            Container(
+              color: Colors.white,
+              child: SafeArea(
+                top: false,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      height: 12.0,
+                      child: VideoProgressIndicator(
+                        _controller,
+                        allowScrubbing: true,
+                        colors: VideoProgressColors(
+                          playedColor: Theme.of(context).colorScheme.primary,
+                          bufferedColor: Colors.grey,
+                          backgroundColor: Colors.black26,
+                        ),
                       ),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 15.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.replay_5, size: 35.0),
-                          onPressed: () {
-                            final newPosition =
-                                _controller.value.position -
-                                const Duration(seconds: 5);
-                            _controller.seekTo(
-                              newPosition.isNegative
-                                  ? Duration.zero
-                                  : newPosition,
-                            );
-                          },
-                        ),
-                        IconButton(
-                          icon: Icon(
-                            _controller.value.isPlaying
-                                ? Icons.pause
-                                : Icons.play_arrow,
-                            size: 35.0,
+                    Padding(
+                      padding: const EdgeInsets.only(top: 15.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.replay_5, size: 35.0),
+                            onPressed: () {
+                              final newPosition =
+                                  _controller.value.position -
+                                  const Duration(seconds: 5);
+                              _controller.seekTo(
+                                newPosition.isNegative
+                                    ? Duration.zero
+                                    : newPosition,
+                              );
+                            },
                           ),
-                          onPressed: () {
-                            setState(() {
+                          IconButton(
+                            icon: Icon(
                               _controller.value.isPlaying
-                                  ? _controller.pause()
-                                  : _controller.play();
-                            });
-                          },
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.forward_5, size: 35.0),
-                          onPressed: () {
-                            final newPosition =
-                                _controller.value.position +
-                                const Duration(seconds: 5);
-                            _controller.seekTo(
-                              newPosition > _controller.value.duration
-                                  ? _controller.value.duration
-                                  : newPosition,
-                            );
-                          },
-                        ),
-                        Text(
-                          '${_printDuration(_controller.value.position)} / ${_printDuration(_controller.value.duration)}',
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                      ],
+                                  ? Icons.pause
+                                  : Icons.play_arrow,
+                              size: 35.0,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _controller.value.isPlaying
+                                    ? _controller.pause()
+                                    : _controller.play();
+                              });
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.forward_5, size: 35.0),
+                            onPressed: () {
+                              final newPosition =
+                                  _controller.value.position +
+                                  const Duration(seconds: 5);
+                              _controller.seekTo(
+                                newPosition > _controller.value.duration
+                                    ? _controller.value.duration
+                                    : newPosition,
+                              );
+                            },
+                          ),
+                          Text(
+                            '${_printDuration(_controller.value.position)} / ${_printDuration(_controller.value.duration)}',
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
 
-          const Divider(),
+            const Divider(),
 
-          // --- Dynamic Annotation Form ---
-          Expanded(
-            child: _isLoadingSchema
+            // --- Dynamic Annotation Form ---
+            _isLoadingSchema
                 ? const Center(child: CircularProgressIndicator())
                 : _categories != null
-                    ? AnnotationForm(categories: _categories!)
+                    ? AnnotationFormContent(categories: _categories!)
                     : const Center(
                         child: Text('Failed to load annotation schema'),
                       ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
