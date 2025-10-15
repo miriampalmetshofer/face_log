@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:face_log/screens/video_review_screen.dart';
+import 'package:face_log/services/annotation_storage_service.dart';
 import 'package:face_log/services/firebase_storage_service.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
@@ -19,6 +20,7 @@ class _VideoLibraryScreenState extends State<VideoLibraryScreen> {
   List<String> _recordedVideos = [];
   final FirebaseStorageService _storageService = FirebaseStorageService();
   final Map<String, Uint8List?> _thumbnailCache = {};
+  final Map<String, bool> _hasAnnotationCache = {};
 
   @override
   void initState() {
@@ -107,25 +109,105 @@ class _VideoLibraryScreenState extends State<VideoLibraryScreen> {
   }
 
   Future<void> _uploadVideo(String filePath) async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Wird hochgeladen...')),
-    );
-    try {
-      await _storageService.uploadVideo(filePath);
+    // Check if annotation exists
+    final annotation = await AnnotationStorageService.loadAnnotation(filePath);
+    if (annotation == null) {
       if (mounted) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Upload erfolgreich!')),
+          const SnackBar(
+            content: Text('Bitte annotieren Sie das Video zuerst'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+      return;
+    }
+
+    // Calculate timeout based on file size (assume 1MB per second upload speed minimum)
+    final file = File(filePath);
+    final fileStat = await file.stat();
+    final fileSizeMB = fileStat.size / (1024 * 1024);
+    final timeoutSeconds = (fileSizeMB * 2).ceil() + 30; // 2 seconds per MB + 30s base
+    final timeout = Duration(seconds: timeoutSeconds.clamp(30, 300)); // Min 30s, max 5min
+
+    // Show loading dialog
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return PopScope(
+            canPop: false,
+            child: AlertDialog(
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Video wird hochgeladen...\n${_formatFileSize(fileStat.size)}',
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    }
+
+    try {
+      await _storageService.uploadVideoWithAnnotation(filePath, annotation)
+          .timeout(
+        timeout,
+        onTimeout: () {
+          throw Exception('Upload-Timeout: Bitte Internetverbindung prüfen');
+        },
+      );
+
+      // Close loading dialog
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Video und Annotation erfolgreich hochgeladen!'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
+          ),
         );
       }
     } catch (e) {
+      // Close loading dialog
       if (mounted) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        Navigator.of(context).pop();
+      }
+
+      // Show error message
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Upload fehlgeschlagen.')),
+          SnackBar(
+            content: Text('Upload fehlgeschlagen: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
         );
       }
     }
+  }
+
+  Future<bool> _hasAnnotation(String videoPath) async {
+    // Use cache to avoid repeated checks
+    if (_hasAnnotationCache.containsKey(videoPath)) {
+      return _hasAnnotationCache[videoPath]!;
+    }
+
+    final hasAnnotation = await AnnotationStorageService.hasAnnotation(videoPath);
+    _hasAnnotationCache[videoPath] = hasAnnotation;
+    return hasAnnotation;
   }
 
   String _formatFileSize(int bytes) {
@@ -223,76 +305,98 @@ class _VideoLibraryScreenState extends State<VideoLibraryScreen> {
                         return const Text('Wird geladen...');
                       },
                     ),
-                    trailing: PopupMenuButton<String>(
-                      onSelected: (value) {
-                        switch (value) {
-                          case 'preview':
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    VideoReviewScreen(videoPath: videoPath),
+                    trailing: FutureBuilder<bool>(
+                      future: _hasAnnotation(videoPath),
+                      builder: (context, snapshot) {
+                        final hasAnnotation = snapshot.data ?? false;
+
+                        return PopupMenuButton<String>(
+                          onSelected: (value) async {
+                            switch (value) {
+                              case 'preview':
+                                final result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        VideoReviewScreen(videoPath: videoPath),
+                                  ),
+                                );
+                                // Clear cache when returning from preview (in case annotation was added/modified)
+                                if (result == null) {
+                                  setState(() {
+                                    _hasAnnotationCache.remove(videoPath);
+                                  });
+                                }
+                                break;
+                              case 'share':
+                                Share.shareXFiles([
+                                  XFile(videoPath),
+                                ], text: 'Gesichtsaufnahme Video');
+                                break;
+                              case 'delete':
+                                _showDeleteConfirmation(videoPath);
+                                break;
+                              case 'upload':
+                                _uploadVideo(videoPath);
+                                break;
+                            }
+                          },
+                          itemBuilder: (context) => [
+                            const PopupMenuItem(
+                              value: 'preview',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.remove_red_eye),
+                                  SizedBox(width: 8),
+                                  Text('Vorschau'),
+                                ],
                               ),
-                            );
-                            break;
-                          case 'share':
-                            Share.shareXFiles([
-                              XFile(videoPath),
-                            ], text: 'Gesichtsaufnahme Video');
-                            break;
-                          case 'delete':
-                            _showDeleteConfirmation(videoPath);
-                            break;
-                          case 'upload':
-                            _uploadVideo(videoPath);
-                            break;
-                        }
+                            ),
+                            const PopupMenuItem(
+                              value: 'share',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.share),
+                                  SizedBox(width: 8),
+                                  Text('Teilen'),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem(
+                              value: 'upload',
+                              enabled: hasAnnotation,
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.cloud_upload,
+                                    color: hasAnnotation ? null : Colors.grey,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Hochladen',
+                                    style: TextStyle(
+                                      color: hasAnnotation ? null : Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const PopupMenuItem(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.delete, color: Colors.red),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Löschen',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        );
                       },
-                      itemBuilder: (context) => [
-                        const PopupMenuItem(
-                          value: 'preview',
-                          child: Row(
-                            children: [
-                              Icon(Icons.remove_red_eye),
-                              SizedBox(width: 8),
-                              Text('Vorschau'),
-                            ],
-                          ),
-                        ),
-                        const PopupMenuItem(
-                          value: 'share',
-                          child: Row(
-                            children: [
-                              Icon(Icons.share),
-                              SizedBox(width: 8),
-                              Text('Teilen'),
-                            ],
-                          ),
-                        ),
-                        const PopupMenuItem(
-                          value: 'upload',
-                          child: Row(
-                            children: [
-                              Icon(Icons.cloud_upload),
-                              SizedBox(width: 8),
-                              Text('Hochladen'),
-                            ],
-                          ),
-                        ),
-                        const PopupMenuItem(
-                          value: 'delete',
-                          child: Row(
-                            children: [
-                              Icon(Icons.delete, color: Colors.red),
-                              SizedBox(width: 8),
-                              Text(
-                                'Löschen',
-                                style: TextStyle(color: Colors.red),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
                     ),
                   );
                 },
