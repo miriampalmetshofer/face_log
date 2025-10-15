@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
 import '../models/annotation_category.dart';
+import '../models/video_annotation.dart';
 import '../services/annotation_service.dart';
+import '../services/annotation_storage_service.dart';
 import '../widgets/annotation_form.dart';
 
 class VideoReviewScreen extends StatefulWidget {
@@ -19,6 +21,7 @@ class _VideoReviewScreenState extends State<VideoReviewScreen> {
   late VideoPlayerController _controller;
   List<AnnotationCategory>? _categories;
   bool _isLoadingSchema = true;
+  VideoAnnotation? _existingAnnotation;
 
   String _printDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, "0");
@@ -40,8 +43,10 @@ class _VideoReviewScreenState extends State<VideoReviewScreen> {
   Future<void> _loadAnnotationSchema() async {
     try {
       final categories = await AnnotationService.loadSchema();
+      final existingAnnotation = await AnnotationStorageService.loadAnnotation(widget.videoPath);
       setState(() {
         _categories = categories;
+        _existingAnnotation = existingAnnotation;
         _isLoadingSchema = false;
       });
     } catch (e) {
@@ -51,6 +56,43 @@ class _VideoReviewScreenState extends State<VideoReviewScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to load annotation schema: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _saveAnnotation(Map<String, dynamic> answers) async {
+    try {
+      final annotation = VideoAnnotation(
+        videoPath: widget.videoPath,
+        answers: answers,
+        timestamp: DateTime.now(),
+      );
+      await AnnotationStorageService.saveAnnotation(annotation);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Annotation gespeichert'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 1),
+          ),
+        );
+
+        // Navigate back to gallery after a short delay
+        Future.delayed(const Duration(milliseconds: 200), () {
+          if (mounted) {
+            Navigator.of(context).pop();
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Fehler beim Speichern: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -174,7 +216,11 @@ class _VideoReviewScreenState extends State<VideoReviewScreen> {
             _isLoadingSchema
                 ? const Center(child: CircularProgressIndicator())
                 : _categories != null
-                    ? AnnotationFormContent(categories: _categories!)
+                    ? AnnotationFormContent(
+                        categories: _categories!,
+                        initialAnswers: _existingAnnotation?.answers,
+                        onSave: _saveAnnotation,
+                      )
                     : const Center(
                         child: Text('Failed to load annotation schema'),
                       ),

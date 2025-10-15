@@ -231,15 +231,31 @@ class _AnnotationFormState extends State<AnnotationForm> {
 /// Non-scrollable version of annotation form for use in SingleChildScrollView
 class AnnotationFormContent extends StatefulWidget {
   final List<AnnotationCategory> categories;
+  final Map<String, dynamic>? initialAnswers;
+  final void Function(Map<String, dynamic> answers)? onSave;
 
-  const AnnotationFormContent({super.key, required this.categories});
+  const AnnotationFormContent({
+    super.key,
+    required this.categories,
+    this.initialAnswers,
+    this.onSave,
+  });
 
   @override
   State<AnnotationFormContent> createState() => _AnnotationFormContentState();
 }
 
 class _AnnotationFormContentState extends State<AnnotationFormContent> {
-  final Map<String, dynamic> answers = {};
+  late final Map<String, dynamic> answers;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize answers with initial values or empty map
+    answers = widget.initialAnswers != null
+        ? Map<String, dynamic>.from(widget.initialAnswers!)
+        : {};
+  }
 
   bool _shouldShowCategory(AnnotationCategory category) {
     if (category.visibleIf == null) return true;
@@ -413,6 +429,7 @@ class _AnnotationFormContentState extends State<AnnotationFormContent> {
                 vertical: 12.0,
               ),
             ),
+            controller: TextEditingController(text: answers[category.id] as String? ?? ''),
             onChanged: (val) => setState(() => answers[category.id] = val),
           ),
         );
@@ -447,6 +464,33 @@ class _AnnotationFormContentState extends State<AnnotationFormContent> {
     final allWidgets = <Widget>[];
     for (final category in widget.categories) {
       allWidgets.addAll(_buildCategoryWithSubcategories(category));
+    }
+
+    // Add save button if onSave callback is provided
+    if (widget.onSave != null) {
+      allWidgets.add(
+        Padding(
+          padding: const EdgeInsets.only(top: 24.0, bottom: 16.0),
+          child: SizedBox(
+            width: double.infinity,
+            height: 48.0,
+            child: ElevatedButton(
+              onPressed: () => widget.onSave!(answers),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+              ),
+              child: const Text(
+                'Speichern',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ),
+        ),
+      );
     }
 
     return Padding(
