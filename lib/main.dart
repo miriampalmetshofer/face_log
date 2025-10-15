@@ -1,4 +1,5 @@
 import 'package:face_log/permissions_request.dart';
+import 'package:face_log/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:face_log/screens/face_recording_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -9,6 +10,14 @@ void main() async {
   await Firebase.initializeApp();
 
   await requestPermissions();
+
+  // Initialize notification service
+  final notificationService = NotificationService();
+  await notificationService.initialize();
+  await notificationService.requestPermissions();
+
+  // Schedule daily reminder at 9:00 AM
+  await notificationService.scheduleDailyReminder(hour: 9, minute: 0);
 
   runApp(const MyApp());
 }
