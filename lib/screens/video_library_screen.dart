@@ -36,6 +36,27 @@ class _VideoLibraryScreenState extends State<VideoLibraryScreen> {
           .map((file) => file.path)
           .toList();
 
+      // Sort by recording date (extracted from filename), newest first
+      videoFiles.sort((a, b) {
+        final aFileName = a.split('/').last;
+        final bFileName = b.split('/').last;
+
+        // Extract timestamp from filename (format: name_YYYY-MM-DD_HH-mm-ss.mp4)
+        final aTimestamp = _extractTimestampFromFilename(aFileName);
+        final bTimestamp = _extractTimestampFromFilename(bFileName);
+
+        if (aTimestamp != null && bTimestamp != null) {
+          return bTimestamp.compareTo(aTimestamp); // Descending order
+        }
+
+        // Fallback to modification date if timestamp extraction fails
+        final aFile = File(a);
+        final bFile = File(b);
+        final aModified = aFile.statSync().modified;
+        final bModified = bFile.statSync().modified;
+        return bModified.compareTo(aModified);
+      });
+
       setState(() {
         _recordedVideos = videoFiles;
       });
@@ -43,6 +64,28 @@ class _VideoLibraryScreenState extends State<VideoLibraryScreen> {
     } catch (e) {
       debugPrint('Error loading existing videos: $e');
     }
+  }
+
+  DateTime? _extractTimestampFromFilename(String filename) {
+    try {
+      // Expected format: name_YYYY-MM-DD_HH-mm-ss.mp4
+      final regex = RegExp(r'(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})-(\d{2})\.mp4$');
+      final match = regex.firstMatch(filename);
+
+      if (match != null) {
+        final year = int.parse(match.group(1)!);
+        final month = int.parse(match.group(2)!);
+        final day = int.parse(match.group(3)!);
+        final hour = int.parse(match.group(4)!);
+        final minute = int.parse(match.group(5)!);
+        final second = int.parse(match.group(6)!);
+
+        return DateTime(year, month, day, hour, minute, second);
+      }
+    } catch (e) {
+      debugPrint('Error parsing timestamp from filename: $filename');
+    }
+    return null;
   }
 
   Future<void> _deleteVideo(String filePath) async {

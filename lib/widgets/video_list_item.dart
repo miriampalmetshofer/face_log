@@ -85,8 +85,14 @@ class _VideoListItemState extends State<VideoListItem> {
     final now = DateTime.now();
     final difference = now.difference(date);
 
-    if (difference.inDays > 0) {
-      return 'vor ${difference.inDays} Tag${difference.inDays == 1 ? '' : 'en'}';
+    if (difference.inDays >= 1) {
+      // Show date + time if older than 1 day
+      final day = date.day.toString().padLeft(2, '0');
+      final month = date.month.toString().padLeft(2, '0');
+      final year = date.year;
+      final hour = date.hour.toString().padLeft(2, '0');
+      final minute = date.minute.toString().padLeft(2, '0');
+      return '$day.$month.$year, $hour:$minute';
     } else if (difference.inHours > 0) {
       return 'vor ${difference.inHours} Stunde${difference.inHours == 1 ? '' : 'n'}';
     } else if (difference.inMinutes > 0) {
