@@ -1,13 +1,9 @@
-import 'dart:typed_data';
-
-import 'package:face_log/screens/video_review_screen.dart';
 import 'package:face_log/services/annotation_storage_service.dart';
 import 'package:face_log/services/firebase_storage_service.dart';
+import 'package:face_log/widgets/video_list_item.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:video_thumbnail/video_thumbnail.dart';
 
 class VideoLibraryScreen extends StatefulWidget {
   const VideoLibraryScreen({super.key});
@@ -19,9 +15,6 @@ class VideoLibraryScreen extends StatefulWidget {
 class _VideoLibraryScreenState extends State<VideoLibraryScreen> {
   List<String> _recordedVideos = [];
   final FirebaseStorageService _storageService = FirebaseStorageService();
-  final Map<String, Uint8List?> _thumbnailCache = {};
-  final Map<String, bool> _hasAnnotationCache = {};
-  final Map<String, bool> _isUploadedCache = {};
 
   @override
   void initState() {
@@ -49,22 +42,6 @@ class _VideoLibraryScreenState extends State<VideoLibraryScreen> {
     } catch (e) {
       debugPrint('Error loading existing videos: $e');
     }
-  }
-
-  Future<Uint8List?> _generateThumbnail(String videoPath) async {
-    if (_thumbnailCache.containsKey(videoPath)) {
-      return _thumbnailCache[videoPath];
-    }
-
-    final thumbnail = await VideoThumbnail.thumbnailData(
-      video: videoPath,
-      imageFormat: ImageFormat.JPEG,
-      maxWidth: 128, // specify the width of the thumbnail, let the height auto-scale
-      quality: 75,
-    );
-
-    _thumbnailCache[videoPath] = thumbnail;
-    return thumbnail;
   }
 
   Future<void> _deleteVideo(String filePath) async {
@@ -124,12 +101,12 @@ class _VideoLibraryScreenState extends State<VideoLibraryScreen> {
       return;
     }
 
-    // Calculate timeout based on file size (assume 1MB per second upload speed minimum)
+    // Calculate timeout based on file size
     final file = File(filePath);
     final fileStat = await file.stat();
     final fileSizeMB = fileStat.size / (1024 * 1024);
-    final timeoutSeconds = (fileSizeMB * 2).ceil() + 30; // 2 seconds per MB + 30s base
-    final timeout = Duration(seconds: timeoutSeconds.clamp(30, 300)); // Min 30s, max 5min
+    final timeoutSeconds = (fileSizeMB * 2).ceil() + 30;
+    final timeout = Duration(seconds: timeoutSeconds.clamp(30, 300));
 
     // Show loading dialog
     if (mounted) {
@@ -158,8 +135,7 @@ class _VideoLibraryScreenState extends State<VideoLibraryScreen> {
     }
 
     try {
-      await _storageService.uploadVideoWithAnnotation(filePath, annotation)
-          .timeout(
+      await _storageService.uploadVideoWithAnnotation(filePath, annotation).timeout(
         timeout,
         onTimeout: () {
           throw Exception('Upload-Timeout: Bitte Internetverbindung prüfen');
@@ -168,7 +144,6 @@ class _VideoLibraryScreenState extends State<VideoLibraryScreen> {
 
       // Mark as uploaded
       await AnnotationStorageService.markAsUploaded(filePath);
-      _isUploadedCache[filePath] = true;
 
       // Close loading dialog
       if (mounted) {
@@ -206,28 +181,6 @@ class _VideoLibraryScreenState extends State<VideoLibraryScreen> {
     }
   }
 
-  Future<bool> _hasAnnotation(String videoPath) async {
-    // Use cache to avoid repeated checks
-    if (_hasAnnotationCache.containsKey(videoPath)) {
-      return _hasAnnotationCache[videoPath]!;
-    }
-
-    final hasAnnotation = await AnnotationStorageService.hasAnnotation(videoPath);
-    _hasAnnotationCache[videoPath] = hasAnnotation;
-    return hasAnnotation;
-  }
-
-  Future<bool> _isUploaded(String videoPath) async {
-    // Use cache to avoid repeated checks
-    if (_isUploadedCache.containsKey(videoPath)) {
-      return _isUploadedCache[videoPath]!;
-    }
-
-    final isUploaded = await AnnotationStorageService.isUploaded(videoPath);
-    _isUploadedCache[videoPath] = isUploaded;
-    return isUploaded;
-  }
-
   String _formatFileSize(int bytes) {
     if (bytes < 1024) return '$bytes B';
     if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
@@ -235,21 +188,6 @@ class _VideoLibraryScreenState extends State<VideoLibraryScreen> {
       return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
     }
     return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
-  }
-
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final difference = now.difference(date);
-
-    if (difference.inDays > 0) {
-      return 'vor ${difference.inDays} Tag${difference.inDays == 1 ? '' : 'en'}';
-    } else if (difference.inHours > 0) {
-      return 'vor ${difference.inHours} Stunde${difference.inHours == 1 ? '' : 'n'}';
-    } else if (difference.inMinutes > 0) {
-      return 'vor ${difference.inMinutes} Minute${difference.inMinutes == 1 ? '' : 'n'}';
-    } else {
-      return 'Gerade eben';
-    }
   }
 
   @override
@@ -283,189 +221,12 @@ class _VideoLibraryScreenState extends State<VideoLibraryScreen> {
                 itemCount: _recordedVideos.length,
                 itemBuilder: (context, index) {
                   final videoPath = _recordedVideos[index];
-                  final fileName = videoPath.split('/').last;
-                  final file = File(videoPath);
-
-                  return ListTile(
-                    leading: FutureBuilder<Map<String, dynamic>>(
-                      future: Future.wait([
-                        _generateThumbnail(videoPath),
-                        _hasAnnotation(videoPath),
-                        _isUploaded(videoPath),
-                      ]).then((results) => {
-                        'thumbnail': results[0] as Uint8List?,
-                        'hasAnnotation': results[1] as bool,
-                        'isUploaded': results[2] as bool,
-                      }),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
-                          final thumbnail = snapshot.data!['thumbnail'] as Uint8List?;
-                          final hasAnnotation = snapshot.data!['hasAnnotation'] as bool;
-                          final isUploaded = snapshot.data!['isUploaded'] as bool;
-
-                          // Determine badge color and icon based on state
-                          Color badgeColor;
-                          IconData badgeIcon;
-                          if (isUploaded) {
-                            badgeColor = Colors.green;
-                            badgeIcon = Icons.cloud_done;
-                          } else if (hasAnnotation) {
-                            badgeColor = Colors.blue;
-                            badgeIcon = Icons.cloud_upload;
-                          } else {
-                            badgeColor = Colors.orange;
-                            badgeIcon = Icons.edit;
-                          }
-
-                          if (thumbnail != null) {
-                            return Stack(
-                              children: [
-                                Image.memory(
-                                  thumbnail,
-                                  width: 60,
-                                  height: 60,
-                                  fit: BoxFit.cover,
-                                ),
-                                Positioned(
-                                  top: 0,
-                                  right: 0,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(2),
-                                    decoration: BoxDecoration(
-                                      color: badgeColor,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      badgeIcon,
-                                      color: Colors.white,
-                                      size: 16,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            );
-                          } else {
-                            return const Icon(Icons.error, color: Colors.red);
-                          }
-                        } else if (snapshot.hasError) {
-                          debugPrint('Error generating thumbnail for $videoPath: ${snapshot.error}');
-                          return const Icon(Icons.error, color: Colors.red);
-                        } else {
-                          return const CircularProgressIndicator(); // Placeholder while loading
-                        }
-                      },
-                    ),
-                    title: Text(
-                      fileName,
-                      style: const TextStyle(fontWeight: FontWeight.w500),
-                    ),
-                    subtitle: FutureBuilder<FileStat>(
-                      future: file.stat(),
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData) {
-                          final size = snapshot.data!.size;
-                          final date = snapshot.data!.modified;
-                          return Text(
-                            '${_formatFileSize(size)} • ${_formatDate(date)}',
-                            style: TextStyle(color: Colors.grey.shade600),
-                          );
-                        }
-                        return const Text('Wird geladen...');
-                      },
-                    ),
-                    trailing: FutureBuilder<bool>(
-                      future: _hasAnnotation(videoPath),
-                      builder: (context, snapshot) {
-                        final hasAnnotation = snapshot.data ?? false;
-
-                        return PopupMenuButton<String>(
-                          onSelected: (value) async {
-                            switch (value) {
-                              case 'preview':
-                                final result = await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        VideoReviewScreen(videoPath: videoPath),
-                                  ),
-                                );
-                                // Clear cache when returning from preview (in case annotation was added/modified)
-                                if (result == null) {
-                                  setState(() {
-                                    _hasAnnotationCache.remove(videoPath);
-                                  });
-                                }
-                                break;
-                              case 'share':
-                                Share.shareXFiles([
-                                  XFile(videoPath),
-                                ], text: 'Gesichtsaufnahme Video');
-                                break;
-                              case 'delete':
-                                _showDeleteConfirmation(videoPath);
-                                break;
-                              case 'upload':
-                                _uploadVideo(videoPath);
-                                break;
-                            }
-                          },
-                          itemBuilder: (context) => [
-                            const PopupMenuItem(
-                              value: 'preview',
-                              child: Row(
-                                children: [
-                                  Icon(Icons.remove_red_eye),
-                                  SizedBox(width: 8),
-                                  Text('Vorschau'),
-                                ],
-                              ),
-                            ),
-                            const PopupMenuItem(
-                              value: 'share',
-                              child: Row(
-                                children: [
-                                  Icon(Icons.share),
-                                  SizedBox(width: 8),
-                                  Text('Teilen'),
-                                ],
-                              ),
-                            ),
-                            PopupMenuItem(
-                              value: 'upload',
-                              enabled: hasAnnotation,
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.cloud_upload,
-                                    color: hasAnnotation ? null : Colors.grey,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Hochladen',
-                                    style: TextStyle(
-                                      color: hasAnnotation ? null : Colors.grey,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const PopupMenuItem(
-                              value: 'delete',
-                              child: Row(
-                                children: [
-                                  Icon(Icons.delete, color: Colors.red),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    'Löschen',
-                                    style: TextStyle(color: Colors.red),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
+                  return VideoListItem(
+                    key: ValueKey(videoPath),
+                    videoPath: videoPath,
+                    onDelete: () => _showDeleteConfirmation(videoPath),
+                    onUpload: () => _uploadVideo(videoPath),
+                    onAnnotationChange: () => setState(() {}),
                   );
                 },
               ),
