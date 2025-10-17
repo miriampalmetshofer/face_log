@@ -8,6 +8,8 @@ import 'package:face_log/widgets/camera_preview_overlay.dart';
 import 'package:face_log/widgets/controls.dart';
 import 'package:face_log/widgets/social_media_shortcuts.dart';
 import 'package:face_log/widgets/status_banner.dart';
+import 'package:face_log/widgets/user_name_display.dart';
+import 'package:face_log/services/user_preferences_service.dart';
 import 'package:flutter/material.dart';
 
 class FaceRecordingScreen extends StatefulWidget {
@@ -26,12 +28,88 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
   bool _showCameraPreview = false;
   String _browserUrl = '';
   int _remainingSeconds = AppConfig.maxRecordingDuration;
+  String? _userName;
 
   @override
   void initState() {
     super.initState();
     _setupCameraManager();
     _initializeCamera();
+    _checkAndPromptForName();
+  }
+
+  Future<void> _checkAndPromptForName() async {
+    final hasName = await UserPreferencesService.hasUserName();
+
+    if (!hasName) {
+      // Wait a bit for the UI to settle
+      await Future.delayed(const Duration(milliseconds: 500));
+      if (mounted) {
+        _showNameInputDialog();
+      }
+    } else {
+      final name = await UserPreferencesService.getUserName();
+      setState(() {
+        _userName = name;
+      });
+    }
+  }
+
+  void _showNameInputDialog() {
+    final controller = TextEditingController();
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => PopScope(
+        canPop: false,
+        child: AlertDialog(
+          title: const Text('Hi!'),
+          content: TextField(
+            controller: controller,
+            decoration: const InputDecoration(
+              labelText: 'Name',
+              hintText: 'Wie heißt du?',
+            ),
+            autofocus: true,
+            onSubmitted: (value) async {
+              if (value.isNotEmpty) {
+                await UserPreferencesService.saveUserName(value);
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                  setState(() {
+                    _userName = value;
+                  });
+                }
+              }
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                if (controller.text.isNotEmpty) {
+                  await UserPreferencesService.saveUserName(controller.text);
+                  if (context.mounted) {
+                    Navigator.of(context).pop();
+                    setState(() {
+                      _userName = controller.text;
+                    });
+                  }
+                }
+              },
+              child: const Text('Weiter'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _refreshUserName() async {
+    final name = await UserPreferencesService.getUserName();
+    setState(() {
+      _userName = name;
+    });
   }
 
   @override
@@ -185,6 +263,11 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
       body: SafeArea(
         child: Column(
           children: [
+            if (_userName != null && !_showBrowser)
+              UserNameDisplay(
+                userName: _userName!,
+                onNameChanged: _refreshUserName,
+              ),
             Expanded(
               child: Stack(
                 alignment: Alignment.topCenter,
