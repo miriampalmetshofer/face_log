@@ -1,11 +1,13 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../models/annotation_category.dart';
 import '../models/video_annotation.dart';
 import '../services/annotation_service.dart';
 import '../services/annotation_storage_service.dart';
+import '../services/firebase_storage_service.dart';
 import '../widgets/annotation_form.dart';
 
 class VideoReviewScreen extends StatefulWidget {
@@ -22,6 +24,8 @@ class _VideoReviewScreenState extends State<VideoReviewScreen> {
   List<AnnotationCategory>? _categories;
   bool _isLoadingSchema = true;
   VideoAnnotation? _existingAnnotation;
+  bool _isUploaded = false;
+  final FirebaseStorageService _storageService = FirebaseStorageService();
 
   String _printDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, "0");
@@ -44,9 +48,11 @@ class _VideoReviewScreenState extends State<VideoReviewScreen> {
     try {
       final categories = await AnnotationService.loadSchema();
       final existingAnnotation = await AnnotationStorageService.loadAnnotation(widget.videoPath);
+      final isUploaded = await AnnotationStorageService.isUploaded(widget.videoPath);
       setState(() {
         _categories = categories;
         _existingAnnotation = existingAnnotation;
+        _isUploaded = isUploaded;
         _isLoadingSchema = false;
       });
     } catch (e) {
@@ -104,14 +110,185 @@ class _VideoReviewScreenState extends State<VideoReviewScreen> {
     super.dispose();
   }
 
+  void _shareVideo() {
+    Share.shareXFiles([
+      XFile(widget.videoPath),
+    ], text: 'Gesichtsaufnahme Video');
+  }
+
+  Future<void> _uploadVideo() async {
+    if (_existingAnnotation == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Bitte annotieren Sie das Video zuerst'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    // Calculate timeout based on file size
+    final file = File(widget.videoPath);
+    final fileStat = await file.stat();
+    final fileSizeMB = fileStat.size / (1024 * 1024);
+    final timeoutSeconds = (fileSizeMB * 2).ceil() + 30;
+    final timeout = Duration(seconds: timeoutSeconds.clamp(30, 300));
+
+    // Show loading dialog
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return PopScope(
+            canPop: false,
+            child: AlertDialog(
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Video wird hochgeladen...\n${_formatFileSize(fileStat.size)}',
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    }
+
+    try {
+      await _storageService.uploadVideoWithAnnotation(widget.videoPath, _existingAnnotation!).timeout(
+        timeout,
+        onTimeout: () {
+          throw Exception('Upload-Timeout: Bitte Internetverbindung prüfen');
+        },
+      );
+
+      // Mark as uploaded
+      await AnnotationStorageService.markAsUploaded(widget.videoPath);
+
+      // Close loading dialog
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+
+      // Update state
+      setState(() {
+        _isUploaded = true;
+      });
+
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Video und Annotation erfolgreich hochgeladen!'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      // Close loading dialog
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+
+      // Show error message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Upload fehlgeschlagen: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    }
+  }
+
+  String _formatFileSize(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    if (bytes < 1024 * 1024 * 1024) {
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    }
+    return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(title: const Text('Video Preview')),
+      appBar: AppBar(
+        title: const Text('Video Preview'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.share),
+            onPressed: _shareVideo,
+            tooltip: 'Teilen',
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
+            // --- Upload Banner (Ready to Upload) ---
+            if (_existingAnnotation != null && !_isUploaded)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                color: Colors.blue.shade100,
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.blue.shade700),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Video ist annotiert und bereit zum Hochladen',
+                        style: TextStyle(
+                          color: Colors.blue.shade900,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: _uploadVideo,
+                      icon: const Icon(Icons.cloud_upload, size: 18),
+                      label: const Text('Hochladen'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue.shade700,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            // --- Uploaded Banner ---
+            if (_isUploaded)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                color: Colors.green.shade100,
+                child: Row(
+                  children: [
+                    Icon(Icons.cloud_done, color: Colors.green.shade700),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Alles erledigt. Dein Video wurde bereits hochgeladen.',
+                        style: TextStyle(
+                          color: Colors.green.shade900,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             // --- Video Player ---
             Center(
               child: ConstrainedBox(

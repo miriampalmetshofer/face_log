@@ -151,11 +151,6 @@ class _VideoListItemState extends State<VideoListItem> {
       trailing: PopupMenuButton<String>(
         onSelected: (value) async {
           switch (value) {
-            case 'share':
-              Share.shareXFiles([
-                XFile(widget.videoPath),
-              ], text: 'Gesichtsaufnahme Video');
-              break;
             case 'delete':
               widget.onDelete();
               break;
@@ -165,16 +160,6 @@ class _VideoListItemState extends State<VideoListItem> {
           }
         },
         itemBuilder: (context) => [
-          const PopupMenuItem(
-            value: 'share',
-            child: Row(
-              children: [
-                Icon(Icons.share),
-                SizedBox(width: 8),
-                Text('Teilen'),
-              ],
-            ),
-          ),
           PopupMenuItem(
             value: 'upload',
             enabled: _hasAnnotation,
