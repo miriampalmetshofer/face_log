@@ -138,7 +138,7 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
     };
 
     _cameraManager.onRecordingComplete = (videoFile) async {
-      await CameraIO.saveToAppDocs(videoFile);
+      await CameraIO.saveToAppDocs(videoFile, userName: _userName);
       if (mounted) {
         setState(() {
           _statusMessage = 'Video gespeichert!';
@@ -173,7 +173,7 @@ class _FaceRecordingScreenState extends State<FaceRecordingScreen> {
       if (_isRecording) {
         final videoFile = await _cameraManager.stopRecording();
         if (videoFile != null) {
-          await CameraIO.saveToAppDocs(videoFile);
+          await CameraIO.saveToAppDocs(videoFile, userName: _userName);
           setState(() {
             _statusMessage = 'Video gespeichert!';
             _remainingSeconds = AppConfig.maxRecordingDuration;

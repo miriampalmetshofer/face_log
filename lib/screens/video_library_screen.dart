@@ -30,7 +30,8 @@ class _VideoLibraryScreenState extends State<VideoLibraryScreen> {
           .where(
             (file) =>
                 file.path.endsWith('.mp4') &&
-                file.path.contains('face_recording_'),
+                !file.path.endsWith('.uploaded') &&
+                !file.path.endsWith('.json'),
           )
           .map((file) => file.path)
           .toList();
