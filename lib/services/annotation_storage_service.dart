@@ -87,4 +87,26 @@ class AnnotationStorageService {
     final annotations = await _loadAllAnnotations();
     return annotations.values.toList();
   }
+
+  /// Mark a video as uploaded
+  static Future<void> markAsUploaded(String videoPath) async {
+    final directory = await getApplicationDocumentsDirectory();
+    final uploadedMarkerPath = path.join(
+      directory.path,
+      '${path.basename(videoPath)}.uploaded',
+    );
+    final file = File(uploadedMarkerPath);
+    await file.writeAsString(DateTime.now().toIso8601String());
+  }
+
+  /// Check if a video has been uploaded
+  static Future<bool> isUploaded(String videoPath) async {
+    final directory = await getApplicationDocumentsDirectory();
+    final uploadedMarkerPath = path.join(
+      directory.path,
+      '${path.basename(videoPath)}.uploaded',
+    );
+    final file = File(uploadedMarkerPath);
+    return await file.exists();
+  }
 }

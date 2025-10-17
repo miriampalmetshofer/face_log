@@ -21,6 +21,7 @@ class _VideoLibraryScreenState extends State<VideoLibraryScreen> {
   final FirebaseStorageService _storageService = FirebaseStorageService();
   final Map<String, Uint8List?> _thumbnailCache = {};
   final Map<String, bool> _hasAnnotationCache = {};
+  final Map<String, bool> _isUploadedCache = {};
 
   @override
   void initState() {
@@ -165,6 +166,10 @@ class _VideoLibraryScreenState extends State<VideoLibraryScreen> {
         },
       );
 
+      // Mark as uploaded
+      await AnnotationStorageService.markAsUploaded(filePath);
+      _isUploadedCache[filePath] = true;
+
       // Close loading dialog
       if (mounted) {
         Navigator.of(context).pop();
@@ -179,6 +184,8 @@ class _VideoLibraryScreenState extends State<VideoLibraryScreen> {
             duration: Duration(seconds: 3),
           ),
         );
+        // Refresh the list to update badge
+        setState(() {});
       }
     } catch (e) {
       // Close loading dialog
@@ -208,6 +215,17 @@ class _VideoLibraryScreenState extends State<VideoLibraryScreen> {
     final hasAnnotation = await AnnotationStorageService.hasAnnotation(videoPath);
     _hasAnnotationCache[videoPath] = hasAnnotation;
     return hasAnnotation;
+  }
+
+  Future<bool> _isUploaded(String videoPath) async {
+    // Use cache to avoid repeated checks
+    if (_isUploadedCache.containsKey(videoPath)) {
+      return _isUploadedCache[videoPath]!;
+    }
+
+    final isUploaded = await AnnotationStorageService.isUploaded(videoPath);
+    _isUploadedCache[videoPath] = isUploaded;
+    return isUploaded;
   }
 
   String _formatFileSize(int bytes) {
@@ -269,16 +287,66 @@ class _VideoLibraryScreenState extends State<VideoLibraryScreen> {
                   final file = File(videoPath);
 
                   return ListTile(
-                    leading: FutureBuilder<Uint8List?>(
-                      future: _generateThumbnail(videoPath),
+                    leading: FutureBuilder<Map<String, dynamic>>(
+                      future: Future.wait([
+                        _generateThumbnail(videoPath),
+                        _hasAnnotation(videoPath),
+                        _isUploaded(videoPath),
+                      ]).then((results) => {
+                        'thumbnail': results[0] as Uint8List?,
+                        'hasAnnotation': results[1] as bool,
+                        'isUploaded': results[2] as bool,
+                      }),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
-                          return Image.memory(
-                            snapshot.data!,
-                            width: 60,
-                            height: 60,
-                            fit: BoxFit.cover,
-                          );
+                          final thumbnail = snapshot.data!['thumbnail'] as Uint8List?;
+                          final hasAnnotation = snapshot.data!['hasAnnotation'] as bool;
+                          final isUploaded = snapshot.data!['isUploaded'] as bool;
+
+                          // Determine badge color and icon based on state
+                          Color badgeColor;
+                          IconData badgeIcon;
+                          if (isUploaded) {
+                            badgeColor = Colors.green;
+                            badgeIcon = Icons.cloud_done;
+                          } else if (hasAnnotation) {
+                            badgeColor = Colors.blue;
+                            badgeIcon = Icons.cloud_upload;
+                          } else {
+                            badgeColor = Colors.orange;
+                            badgeIcon = Icons.edit;
+                          }
+
+                          if (thumbnail != null) {
+                            return Stack(
+                              children: [
+                                Image.memory(
+                                  thumbnail,
+                                  width: 60,
+                                  height: 60,
+                                  fit: BoxFit.cover,
+                                ),
+                                Positioned(
+                                  top: 0,
+                                  right: 0,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(2),
+                                    decoration: BoxDecoration(
+                                      color: badgeColor,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      badgeIcon,
+                                      color: Colors.white,
+                                      size: 16,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          } else {
+                            return const Icon(Icons.error, color: Colors.red);
+                          }
                         } else if (snapshot.hasError) {
                           debugPrint('Error generating thumbnail for $videoPath: ${snapshot.error}');
                           return const Icon(Icons.error, color: Colors.red);
