@@ -102,12 +102,25 @@ class _VideoListItemState extends State<VideoListItem> {
     }
   }
 
+  Future<void> _openPreview() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => VideoReviewScreen(videoPath: widget.videoPath),
+      ),
+    );
+    // Refresh data after returning from preview
+    widget.onAnnotationChange();
+    _loadData();
+  }
+
   @override
   Widget build(BuildContext context) {
     final fileName = widget.videoPath.split('/').last;
     final file = File(widget.videoPath);
 
     return ListTile(
+      onTap: _openPreview,
       leading: _isLoading
           ? const CircularProgressIndicator()
           : _thumbnail != null
@@ -138,18 +151,6 @@ class _VideoListItemState extends State<VideoListItem> {
       trailing: PopupMenuButton<String>(
         onSelected: (value) async {
           switch (value) {
-            case 'preview':
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      VideoReviewScreen(videoPath: widget.videoPath),
-                ),
-              );
-              // Refresh data after returning from preview
-              widget.onAnnotationChange();
-              _loadData();
-              break;
             case 'share':
               Share.shareXFiles([
                 XFile(widget.videoPath),
@@ -164,16 +165,6 @@ class _VideoListItemState extends State<VideoListItem> {
           }
         },
         itemBuilder: (context) => [
-          const PopupMenuItem(
-            value: 'preview',
-            child: Row(
-              children: [
-                Icon(Icons.remove_red_eye),
-                SizedBox(width: 8),
-                Text('Vorschau'),
-              ],
-            ),
-          ),
           const PopupMenuItem(
             value: 'share',
             child: Row(
