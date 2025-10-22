@@ -4,7 +4,6 @@ import 'package:face_log/screens/video_review_screen.dart';
 import 'package:face_log/services/annotation_storage_service.dart';
 import 'package:face_log/widgets/video_status_badge.dart';
 import 'package:flutter/material.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 
 class VideoListItem extends StatefulWidget {
