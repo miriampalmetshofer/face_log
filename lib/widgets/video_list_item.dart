@@ -71,6 +71,11 @@ class _VideoListItemState extends State<VideoListItem> {
     }
   }
 
+  /// Public method to refresh data (e.g., after upload completes)
+  void refreshData() {
+    _loadData();
+  }
+
   Future<Uint8List?> _generateThumbnail() async {
     return await VideoThumbnail.thumbnailData(
       video: widget.videoPath,
@@ -122,6 +127,33 @@ class _VideoListItemState extends State<VideoListItem> {
     _loadData();
   }
 
+  void _showReuploadConfirmation() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Erneut hochladen?'),
+          content: const Text(
+            'Dieses Video wurde bereits hochgeladen. Möchten Sie es wirklich erneut hochladen?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Abbrechen'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                widget.onUpload();
+              },
+              child: const Text('Erneut hochladen', style: TextStyle(color: Colors.orange)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final fileName = widget.videoPath.split('/').last;
@@ -165,28 +197,48 @@ class _VideoListItemState extends State<VideoListItem> {
             case 'upload':
               widget.onUpload();
               break;
+            case 'reupload':
+              _showReuploadConfirmation();
+              break;
           }
         },
         itemBuilder: (context) => [
-          PopupMenuItem(
-            value: 'upload',
-            enabled: _hasAnnotation,
-            child: Row(
-              children: [
-                Icon(
-                  Icons.cloud_upload,
-                  color: _hasAnnotation ? null : Colors.grey,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Hochladen',
-                  style: TextStyle(
+          // Show "Hochladen" only if not uploaded yet
+          if (!_isUploaded)
+            PopupMenuItem(
+              value: 'upload',
+              enabled: _hasAnnotation,
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.cloud_upload,
                     color: _hasAnnotation ? null : Colors.grey,
                   ),
-                ),
-              ],
+                  const SizedBox(width: 8),
+                  Text(
+                    'Hochladen',
+                    style: TextStyle(
+                      color: _hasAnnotation ? null : Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
+          // Hidden re-upload option (only visible if already uploaded)
+          if (_isUploaded)
+            const PopupMenuItem(
+              value: 'reupload',
+              child: Row(
+                children: [
+                  Icon(Icons.cloud_upload, color: Colors.orange),
+                  SizedBox(width: 8),
+                  Text(
+                    'Erneut hochladen',
+                    style: TextStyle(color: Colors.orange),
+                  ),
+                ],
+              ),
+            ),
           const PopupMenuItem(
             value: 'delete',
             child: Row(
