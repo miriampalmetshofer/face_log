@@ -16,6 +16,7 @@ class VideoLibraryScreen extends StatefulWidget {
 class _VideoLibraryScreenState extends State<VideoLibraryScreen> {
   List<String> _recordedVideos = [];
   final FirebaseStorageService _storageService = FirebaseStorageService();
+  int _refreshCounter = 0;
 
   @override
   void initState() {
@@ -208,7 +209,9 @@ class _VideoLibraryScreenState extends State<VideoLibraryScreen> {
           ),
         );
         // Refresh the list to update badge
-        setState(() {});
+        setState(() {
+          _refreshCounter++;
+        });
       }
     } catch (e) {
       // Close loading dialog
@@ -270,11 +273,13 @@ class _VideoLibraryScreenState extends State<VideoLibraryScreen> {
                 itemBuilder: (context, index) {
                   final videoPath = _recordedVideos[index];
                   return VideoListItem(
-                    key: ValueKey(videoPath),
+                    key: ValueKey('$videoPath-$_refreshCounter'),
                     videoPath: videoPath,
                     onDelete: () => _showDeleteConfirmation(videoPath),
                     onUpload: () => _uploadVideo(videoPath),
-                    onAnnotationChange: () => setState(() {}),
+                    onAnnotationChange: () => setState(() {
+                      _refreshCounter++;
+                    }),
                   );
                 },
               ),

@@ -36,6 +36,15 @@ class _VideoListItemState extends State<VideoListItem> {
     _loadData();
   }
 
+  @override
+  void didUpdateWidget(VideoListItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Reload data if the widget updates
+    if (oldWidget.videoPath != widget.videoPath) {
+      _loadData();
+    }
+  }
+
   Future<void> _loadData() async {
     try {
       final results = await Future.wait([
