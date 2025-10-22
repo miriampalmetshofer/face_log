@@ -113,6 +113,39 @@ face_recording_<timestamp>.mp4
 - `path_provider`: Local storage access
 - `permission_handler`: Runtime permissions
 
+## Code Structure Guidelines
+
+When working on this codebase, adhere to the following principles:
+
+### File Organization
+- **Keep files small and focused**: Each file should have a single, clear responsibility
+- **Extract reusable components**: Move dialogs, complex widgets, and reusable UI elements into separate files in `lib/widgets/`
+- **Maximum file size**: Aim to keep files under ~300 lines. If a file grows beyond this, consider extracting components
+- **Component naming**: Use descriptive names that clearly indicate the component's purpose (e.g., `unsaved_changes_dialog.dart`, `upload_progress_dialog.dart`)
+
+### Component Structure
+- **Dialog pattern**: For reusable dialogs, create a stateless class with a static `show()` method that returns the expected type
+  ```dart
+  class MyDialog {
+    static Future<bool> show(BuildContext context) async {
+      // Dialog implementation
+    }
+  }
+  ```
+- **Widget extraction**: When a screen's build method becomes too complex, extract sections into separate widget files
+- **Separation of concerns**: Keep business logic in services, UI in widgets/screens, and configuration in `config.dart`
+
+### Configuration Management
+- **Centralize constants**: All configurable values (timeouts, durations, sizes, etc.) should be defined in `config.dart`
+- **Avoid magic numbers**: Use named constants from `config.dart` instead of hardcoded values
+- **Configuration categories**: Group related constants together in the `AppConfig` class
+
+### Best Practices
+- **Single responsibility**: Each widget, screen, or service should do one thing well
+- **Reusability**: Extract common patterns into shared components
+- **Readability**: Prefer multiple small files over large, monolithic ones
+- **Maintainability**: Make it easy to find and modify specific functionality by keeping related code together
+
 ## Important Notes
 
 - The app is currently in German language (UI strings like "Kamera wird initialisiert...")

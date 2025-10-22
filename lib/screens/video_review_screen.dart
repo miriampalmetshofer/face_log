@@ -12,6 +12,7 @@ import '../services/firebase_storage_service.dart';
 import '../services/user_preferences_service.dart';
 import '../widgets/annotation_form.dart';
 import '../widgets/upload_progress_dialog.dart';
+import '../widgets/unsaved_changes_dialog.dart';
 
 class VideoReviewScreen extends StatefulWidget {
   final String videoPath;
@@ -28,6 +29,7 @@ class _VideoReviewScreenState extends State<VideoReviewScreen> {
   bool _isLoadingSchema = true;
   VideoAnnotation? _existingAnnotation;
   bool _isUploaded = false;
+  bool _hasUnsavedChanges = false;
   final FirebaseStorageService _storageService = FirebaseStorageService();
 
   String _printDuration(Duration duration) {
@@ -78,6 +80,11 @@ class _VideoReviewScreenState extends State<VideoReviewScreen> {
         timestamp: DateTime.now(),
       );
       await AnnotationStorageService.saveAnnotation(annotation);
+
+      // Clear unsaved changes flag after successful save
+      setState(() {
+        _hasUnsavedChanges = false;
+      });
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -220,21 +227,36 @@ class _VideoReviewScreenState extends State<VideoReviewScreen> {
     return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
   }
 
+  Future<bool> _showUnsavedChangesDialog() async {
+    if (!_hasUnsavedChanges) return true;
+    return await UnsavedChangesDialog.show(context);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text('Video Preview'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.share),
-            onPressed: _shareVideo,
-            tooltip: 'Teilen',
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
+    return PopScope(
+      canPop: !_hasUnsavedChanges,
+      onPopInvokedWithResult: (bool didPop, dynamic result) async {
+        if (didPop) return;
+
+        final shouldPop = await _showUnsavedChangesDialog();
+        if (shouldPop && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          title: const Text('Video Preview'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.share),
+              onPressed: _shareVideo,
+              tooltip: 'Teilen',
+            ),
+          ],
+        ),
+        body: SingleChildScrollView(
         child: Column(
           children: [
             // --- Upload Banner (Ready to Upload) ---
@@ -398,6 +420,11 @@ class _VideoReviewScreenState extends State<VideoReviewScreen> {
                         categories: _categories!,
                         initialAnswers: _existingAnnotation?.answers,
                         onSave: _saveAnnotation,
+                        onFormChanged: (hasChanges) {
+                          setState(() {
+                            _hasUnsavedChanges = hasChanges;
+                          });
+                        },
                       )
                     : const Center(
                         child: Text('Failed to load annotation schema'),
@@ -405,6 +432,7 @@ class _VideoReviewScreenState extends State<VideoReviewScreen> {
           ],
         ),
       ),
+    ),
     );
   }
 }

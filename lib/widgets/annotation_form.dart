@@ -95,12 +95,14 @@ class AnnotationFormContent extends StatefulWidget {
   final List<AnnotationCategory> categories;
   final Map<String, dynamic>? initialAnswers;
   final void Function(Map<String, dynamic> answers)? onSave;
+  final void Function(bool hasChanges)? onFormChanged;
 
   const AnnotationFormContent({
     super.key,
     required this.categories,
     this.initialAnswers,
     this.onSave,
+    this.onFormChanged,
   });
 
   @override
@@ -109,6 +111,7 @@ class AnnotationFormContent extends StatefulWidget {
 
 class _AnnotationFormContentState extends State<AnnotationFormContent> {
   late final Map<String, dynamic> answers;
+  late final Map<String, dynamic> initialAnswersCopy;
 
   @override
   void initState() {
@@ -117,6 +120,38 @@ class _AnnotationFormContentState extends State<AnnotationFormContent> {
     answers = widget.initialAnswers != null
         ? Map<String, dynamic>.from(widget.initialAnswers!)
         : {};
+    // Keep a copy of initial answers to detect changes
+    initialAnswersCopy = widget.initialAnswers != null
+        ? Map<String, dynamic>.from(widget.initialAnswers!)
+        : {};
+  }
+
+  bool _hasChanges() {
+    // Deep comparison of answers and initialAnswersCopy
+    if (answers.length != initialAnswersCopy.length) return true;
+
+    for (final key in answers.keys) {
+      final currentValue = answers[key];
+      final initialValue = initialAnswersCopy[key];
+
+      // Handle list comparison
+      if (currentValue is List && initialValue is List) {
+        if (currentValue.length != initialValue.length) return true;
+        for (int i = 0; i < currentValue.length; i++) {
+          if (currentValue[i] != initialValue[i]) return true;
+        }
+      } else if (currentValue != initialValue) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  void _notifyFormChanged() {
+    if (widget.onFormChanged != null) {
+      widget.onFormChanged!(_hasChanges());
+    }
   }
 
   List<Widget> _buildCategoryWithSubcategories(AnnotationCategory category) {
@@ -142,14 +177,20 @@ class _AnnotationFormContentState extends State<AnnotationFormContent> {
           return SingleChoiceDropdown(
             category: category,
             currentValue: answers[category.id],
-            onChanged: (val) => setState(() => answers[category.id] = val),
+            onChanged: (val) {
+              setState(() => answers[category.id] = val);
+              _notifyFormChanged();
+            },
           );
         } else {
           // Use radio buttons for subcategories
           return SingleChoiceRadio(
             category: category,
             currentValue: answers[category.id],
-            onChanged: (val) => setState(() => answers[category.id] = val),
+            onChanged: (val) {
+              setState(() => answers[category.id] = val);
+              _notifyFormChanged();
+            },
           );
         }
 
@@ -158,14 +199,20 @@ class _AnnotationFormContentState extends State<AnnotationFormContent> {
         return MultipleChoiceCheckboxes(
           category: category,
           selectedValues: List<String>.from(answers[category.id] as List),
-          onChanged: (updatedList) => setState(() => answers[category.id] = updatedList),
+          onChanged: (updatedList) {
+            setState(() => answers[category.id] = updatedList);
+            _notifyFormChanged();
+          },
         );
 
       case "text":
         return TextInputField(
           category: category,
           currentValue: answers[category.id] as String?,
-          onChanged: (val) => setState(() => answers[category.id] = val),
+          onChanged: (val) {
+            setState(() => answers[category.id] = val);
+            _notifyFormChanged();
+          },
         );
 
       case "header":
