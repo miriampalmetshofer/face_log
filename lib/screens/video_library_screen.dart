@@ -2,6 +2,7 @@ import 'package:face_log/services/annotation_storage_service.dart';
 import 'package:face_log/services/firebase_storage_service.dart';
 import 'package:face_log/services/user_preferences_service.dart';
 import 'package:face_log/widgets/video_list_item.dart';
+import 'package:face_log/widgets/video_library_info_dialog.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
@@ -241,11 +242,19 @@ class _VideoLibraryScreenState extends State<VideoLibraryScreen> {
     return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Videobibliothek'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.info_outline),
+            onPressed: () => VideoLibraryInfoDialog.show(context),
+            tooltip: 'Informationen',
+          ),
+        ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

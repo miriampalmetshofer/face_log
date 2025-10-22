@@ -32,7 +32,7 @@ class Controls extends StatelessWidget {
           FloatingActionButton.large(
             heroTag: 'record_button',
             onPressed: isInitialized ? onToggleRecording : null,
-            backgroundColor: isRecording ? Colors.orange : Colors.blue,
+            backgroundColor: isRecording ? Colors.orange : Colors.red,
             child: Icon(
               isRecording ? Icons.stop : Icons.fiber_manual_record,
               size: 40,
