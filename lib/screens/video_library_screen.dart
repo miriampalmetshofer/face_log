@@ -1,5 +1,6 @@
 import 'package:face_log/services/annotation_storage_service.dart';
 import 'package:face_log/services/firebase_storage_service.dart';
+import 'package:face_log/services/user_preferences_service.dart';
 import 'package:face_log/widgets/video_list_item.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
@@ -145,6 +146,9 @@ class _VideoLibraryScreenState extends State<VideoLibraryScreen> {
       return;
     }
 
+    // Get username for subfolder organization
+    final userName = await UserPreferencesService.getUserName();
+
     // Calculate timeout based on file size
     final file = File(filePath);
     final fileStat = await file.stat();
@@ -179,7 +183,7 @@ class _VideoLibraryScreenState extends State<VideoLibraryScreen> {
     }
 
     try {
-      await _storageService.uploadVideoWithAnnotation(filePath, annotation).timeout(
+      await _storageService.uploadVideoWithAnnotation(filePath, annotation, userName: userName).timeout(
         timeout,
         onTimeout: () {
           throw Exception('Upload-Timeout: Bitte Internetverbindung prüfen');

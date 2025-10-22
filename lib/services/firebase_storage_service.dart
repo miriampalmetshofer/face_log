@@ -6,11 +6,15 @@ import '../models/video_annotation.dart';
 class FirebaseStorageService {
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
-  Future<void> uploadVideo(String filePath) async {
+  Future<void> uploadVideo(String filePath, {String? userName}) async {
     try {
       final file = File(filePath);
       final fileName = filePath.split('/').last;
-      final ref = _storage.ref().child('videos/$fileName');
+
+      final sanitizedUserName = userName?.replaceAll(RegExp(r'[^\w\s-]'), '').replaceAll(' ', '_').toLowerCase() ?? 'unknown';
+
+      // Upload to {username}/videos/{filename}
+      final ref = _storage.ref().child('$sanitizedUserName/videos/$fileName');
       final uploadTask = ref.putFile(file);
       await uploadTask.whenComplete(() => null);
     } on FirebaseException catch (e) {
@@ -22,7 +26,7 @@ class FirebaseStorageService {
     }
   }
 
-  Future<void> uploadAnnotation(String videoPath, VideoAnnotation annotation) async {
+  Future<void> uploadAnnotation(String videoPath, VideoAnnotation annotation, {String? userName}) async {
     try {
       final fileName = videoPath.split('/').last;
       // Replace .mp4 extension with .json
@@ -32,8 +36,11 @@ class FirebaseStorageService {
       final jsonString = json.encode(annotation.toJson());
       final jsonBytes = utf8.encode(jsonString);
 
-      // Upload to Firebase Storage under annotations/ folder
-      final ref = _storage.ref().child('annotations/$jsonFileName');
+      // Sanitize username for Firebase Storage path (remove special characters)
+      final sanitizedUserName = userName?.replaceAll(RegExp(r'[^\w\s-]'), '').replaceAll(' ', '_').toLowerCase() ?? 'unknown';
+
+      // Upload to {username}/annotations/{filename}
+      final ref = _storage.ref().child('$sanitizedUserName/annotations/$jsonFileName');
       final uploadTask = ref.putData(
         jsonBytes,
         SettableMetadata(contentType: 'application/json'),
@@ -49,10 +56,10 @@ class FirebaseStorageService {
   }
 
   /// Upload both video and annotation together
-  Future<void> uploadVideoWithAnnotation(String videoPath, VideoAnnotation annotation) async {
+  Future<void> uploadVideoWithAnnotation(String videoPath, VideoAnnotation annotation, {String? userName}) async {
     // Upload video first
-    await uploadVideo(videoPath);
+    await uploadVideo(videoPath, userName: userName);
     // Then upload annotation
-    await uploadAnnotation(videoPath, annotation);
+    await uploadAnnotation(videoPath, annotation, userName: userName);
   }
 }

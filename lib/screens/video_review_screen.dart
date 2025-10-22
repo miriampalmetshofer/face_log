@@ -8,6 +8,7 @@ import '../models/video_annotation.dart';
 import '../services/annotation_service.dart';
 import '../services/annotation_storage_service.dart';
 import '../services/firebase_storage_service.dart';
+import '../services/user_preferences_service.dart';
 import '../widgets/annotation_form.dart';
 
 class VideoReviewScreen extends StatefulWidget {
@@ -127,6 +128,8 @@ class _VideoReviewScreenState extends State<VideoReviewScreen> {
       return;
     }
 
+    final userName = await UserPreferencesService.getUserName();
+
     // Calculate timeout based on file size
     final file = File(widget.videoPath);
     final fileStat = await file.stat();
@@ -161,7 +164,7 @@ class _VideoReviewScreenState extends State<VideoReviewScreen> {
     }
 
     try {
-      await _storageService.uploadVideoWithAnnotation(widget.videoPath, _existingAnnotation!).timeout(
+      await _storageService.uploadVideoWithAnnotation(widget.videoPath, _existingAnnotation!, userName: userName).timeout(
         timeout,
         onTimeout: () {
           throw Exception('Upload-Timeout: Bitte Internetverbindung prüfen');
