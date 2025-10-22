@@ -1,8 +1,10 @@
+import 'package:face_log/config.dart';
 import 'package:face_log/services/annotation_storage_service.dart';
 import 'package:face_log/services/firebase_storage_service.dart';
 import 'package:face_log/services/user_preferences_service.dart';
 import 'package:face_log/widgets/video_list_item.dart';
 import 'package:face_log/widgets/video_library_info_dialog.dart';
+import 'package:face_log/widgets/upload_progress_dialog.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
@@ -155,37 +157,33 @@ class _VideoLibraryScreenState extends State<VideoLibraryScreen> {
     final file = File(filePath);
     final fileStat = await file.stat();
     final fileSizeMB = fileStat.size / (1024 * 1024);
-    final timeoutSeconds = (fileSizeMB * 2).ceil() + 30;
-    final timeout = Duration(seconds: timeoutSeconds.clamp(30, 300));
+    final timeoutSeconds = (fileSizeMB * AppConfig.uploadTimeoutSecondsPerMB).ceil() + AppConfig.uploadTimeoutBaseSeconds;
+    final timeout = Duration(seconds: timeoutSeconds.clamp(AppConfig.uploadTimeoutMinSeconds, AppConfig.uploadTimeoutMaxSeconds));
 
-    // Show loading dialog
+    // Show progress dialog
+    final progressKey = GlobalKey<UploadProgressDialogState>();
     if (mounted) {
       showDialog(
         context: context,
         barrierDismissible: false,
         builder: (BuildContext context) {
-          return PopScope(
-            canPop: false,
-            child: AlertDialog(
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const CircularProgressIndicator(),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Video wird hochgeladen...\n${_formatFileSize(fileStat.size)}',
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
+          return UploadProgressDialog(
+            key: progressKey,
+            totalBytes: fileStat.size,
           );
         },
       );
     }
 
     try {
-      await _storageService.uploadVideoWithAnnotation(filePath, annotation, userName: userName).timeout(
+      await _storageService.uploadVideoWithAnnotation(
+        filePath,
+        annotation,
+        userName: userName,
+        onProgress: (progress) {
+          progressKey.currentState?.updateProgress(progress);
+        },
+      ).timeout(
         timeout,
         onTimeout: () {
           throw Exception('Upload-Timeout: Bitte Internetverbindung prüfen');

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../config.dart';
 import '../models/annotation_category.dart';
 import '../models/video_annotation.dart';
 import '../services/annotation_service.dart';
@@ -10,6 +11,7 @@ import '../services/annotation_storage_service.dart';
 import '../services/firebase_storage_service.dart';
 import '../services/user_preferences_service.dart';
 import '../widgets/annotation_form.dart';
+import '../widgets/upload_progress_dialog.dart';
 
 class VideoReviewScreen extends StatefulWidget {
   final String videoPath;
@@ -134,37 +136,33 @@ class _VideoReviewScreenState extends State<VideoReviewScreen> {
     final file = File(widget.videoPath);
     final fileStat = await file.stat();
     final fileSizeMB = fileStat.size / (1024 * 1024);
-    final timeoutSeconds = (fileSizeMB * 2).ceil() + 30;
-    final timeout = Duration(seconds: timeoutSeconds.clamp(30, 300));
+    final timeoutSeconds = (fileSizeMB * AppConfig.uploadTimeoutSecondsPerMB).ceil() + AppConfig.uploadTimeoutBaseSeconds;
+    final timeout = Duration(seconds: timeoutSeconds.clamp(AppConfig.uploadTimeoutMinSeconds, AppConfig.uploadTimeoutMaxSeconds));
 
-    // Show loading dialog
+    // Show progress dialog
+    final progressKey = GlobalKey<UploadProgressDialogState>();
     if (mounted) {
       showDialog(
         context: context,
         barrierDismissible: false,
         builder: (BuildContext context) {
-          return PopScope(
-            canPop: false,
-            child: AlertDialog(
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const CircularProgressIndicator(),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Video wird hochgeladen...\n${_formatFileSize(fileStat.size)}',
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
+          return UploadProgressDialog(
+            key: progressKey,
+            totalBytes: fileStat.size,
           );
         },
       );
     }
 
     try {
-      await _storageService.uploadVideoWithAnnotation(widget.videoPath, _existingAnnotation!, userName: userName).timeout(
+      await _storageService.uploadVideoWithAnnotation(
+        widget.videoPath,
+        _existingAnnotation!,
+        userName: userName,
+        onProgress: (progress) {
+          progressKey.currentState?.updateProgress(progress);
+        },
+      ).timeout(
         timeout,
         onTimeout: () {
           throw Exception('Upload-Timeout: Bitte Internetverbindung prüfen');
@@ -342,7 +340,7 @@ class _VideoReviewScreenState extends State<VideoReviewScreen> {
                             onPressed: () {
                               final newPosition =
                                   _controller.value.position -
-                                  const Duration(seconds: 5);
+                                  Duration(seconds: AppConfig.videoPlayerSkipSeconds);
                               _controller.seekTo(
                                 newPosition.isNegative
                                     ? Duration.zero
@@ -370,7 +368,7 @@ class _VideoReviewScreenState extends State<VideoReviewScreen> {
                             onPressed: () {
                               final newPosition =
                                   _controller.value.position +
-                                  const Duration(seconds: 5);
+                                  Duration(seconds: AppConfig.videoPlayerSkipSeconds);
                               _controller.seekTo(
                                 newPosition > _controller.value.duration
                                     ? _controller.value.duration

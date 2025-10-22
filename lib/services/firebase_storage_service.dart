@@ -6,7 +6,7 @@ import '../models/video_annotation.dart';
 class FirebaseStorageService {
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
-  Future<void> uploadVideo(String filePath, {String? userName}) async {
+  Future<void> uploadVideo(String filePath, {String? userName, void Function(double)? onProgress}) async {
     try {
       final file = File(filePath);
       final fileName = filePath.split('/').last;
@@ -16,6 +16,15 @@ class FirebaseStorageService {
       // Upload to {username}/videos/{filename}
       final ref = _storage.ref().child('$sanitizedUserName/videos/$fileName');
       final uploadTask = ref.putFile(file);
+
+      // Listen to upload progress
+      if (onProgress != null) {
+        uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
+          final progress = snapshot.bytesTransferred / snapshot.totalBytes;
+          onProgress(progress);
+        });
+      }
+
       await uploadTask.whenComplete(() => null);
     } on FirebaseException catch (e) {
       throw Exception('Firebase upload failed: ${e.message}');
@@ -26,7 +35,7 @@ class FirebaseStorageService {
     }
   }
 
-  Future<void> uploadAnnotation(String videoPath, VideoAnnotation annotation, {String? userName}) async {
+  Future<void> uploadAnnotation(String videoPath, VideoAnnotation annotation, {String? userName, void Function(double)? onProgress}) async {
     try {
       final fileName = videoPath.split('/').last;
       // Replace .mp4 extension with .json
@@ -45,6 +54,15 @@ class FirebaseStorageService {
         jsonBytes,
         SettableMetadata(contentType: 'application/json'),
       );
+
+      // Listen to upload progress (annotations are small, will be fast)
+      if (onProgress != null) {
+        uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
+          final progress = snapshot.bytesTransferred / snapshot.totalBytes;
+          onProgress(progress);
+        });
+      }
+
       await uploadTask.whenComplete(() => null);
     } on FirebaseException catch (e) {
       throw Exception('Firebase upload failed: ${e.message}');
@@ -56,10 +74,24 @@ class FirebaseStorageService {
   }
 
   /// Upload both video and annotation together
-  Future<void> uploadVideoWithAnnotation(String videoPath, VideoAnnotation annotation, {String? userName}) async {
-    // Upload video first
-    await uploadVideo(videoPath, userName: userName);
-    // Then upload annotation
-    await uploadAnnotation(videoPath, annotation, userName: userName);
+  /// Progress callback reports combined progress (video=99%, annotation=1%)
+  Future<void> uploadVideoWithAnnotation(String videoPath, VideoAnnotation annotation, {String? userName, void Function(double)? onProgress}) async {
+    // Upload video first (99% of the total progress)
+    await uploadVideo(
+      videoPath,
+      userName: userName,
+      onProgress: onProgress != null
+          ? (videoProgress) => onProgress(videoProgress * 0.99)
+          : null,
+    );
+    // Then upload annotation (last 1% of progress)
+    await uploadAnnotation(
+      videoPath,
+      annotation,
+      userName: userName,
+      onProgress: onProgress != null
+          ? (annotationProgress) => onProgress(0.99 + (annotationProgress * 0.01))
+          : null,
+    );
   }
 }
