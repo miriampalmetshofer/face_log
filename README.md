@@ -84,3 +84,42 @@ flutter build apk --release
 flutter build appbundle --release
 ```
 
+---
+
+## Troubleshooting
+
+### iOS Build Fails: "resource fork, Finder information, or similar detritus not allowed"
+
+**Problem**: iOS build fails with codesigning error mentioning "resource fork" or "similar detritus not allowed".
+
+**Cause**: Image files (PNG, JPG) in your project have macOS extended attributes attached to them. This commonly happens when:
+- Images are downloaded from the internet (ChatGPT, web browsers, etc.)
+- Files are copied from the Downloads folder
+- Images are edited with certain macOS apps
+
+These attributes propagate through Flutter's build process and cause Apple's codesigning to fail.
+
+**Solution**:
+
+1. **Clean all image files** in your project:
+   ```bash
+   find . -type f \( -name "*.png" -o -name "*.jpg" -o -name "*.jpeg" \) -exec xattr -c {} \;
+   ```
+
+2. **Clean Flutter build cache**:
+   ```bash
+   flutter clean
+   ```
+
+3. **Rebuild**:
+   ```bash
+   flutter run --release -d <ios_device>
+   ```
+
+4. **Commit the cleaned files** to git to prevent the issue from recurring.
+
+**Prevention**: Always clean extended attributes from new images before adding them to the project:
+```bash
+xattr -c path/to/new/image.png
+```
+
