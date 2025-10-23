@@ -162,6 +162,57 @@ class _AnnotationFormContentState extends State<AnnotationFormContent> {
     }
   }
 
+  List<String> _validateForm() {
+    final missingFields = <String>[];
+    _collectMissingFields(widget.categories, missingFields);
+    return missingFields;
+  }
+
+  void _collectMissingFields(List<AnnotationCategory> categories, List<String> missingFields) {
+    for (final category in categories) {
+      if (!FormVisibilityHelper.shouldShowCategory(category, answers)) {
+        continue;
+      }
+
+      if (category.inputType == "header") {
+        _collectMissingFields(category.subcategories, missingFields);
+        continue;
+      }
+
+      if (category.inputType == "checkbox") {
+        continue;
+      }
+
+      if (category.id == "notes_text" || category.id == "notes") {
+        continue;
+      }
+
+      final value = answers[category.id];
+      bool isMissing = false;
+
+      switch (category.inputType) {
+        case "single_choice":
+          isMissing = value == null || value.toString().isEmpty;
+          break;
+
+        case "multiple_choice":
+          isMissing = value == null || (value is List && value.isEmpty);
+          break;
+
+        case "text":
+          isMissing = value == null || (value is String && value.trim().isEmpty);
+          break;
+      }
+
+      if (isMissing) {
+        missingFields.add(category.title);
+      }
+
+      // Check subcategories
+      _collectMissingFields(category.subcategories, missingFields);
+    }
+  }
+
   List<Widget> _buildCategoryWithSubcategories(AnnotationCategory category) {
     if (!FormVisibilityHelper.shouldShowCategory(category, answers)) {
       return [];
@@ -241,6 +292,44 @@ class _AnnotationFormContentState extends State<AnnotationFormContent> {
     }
   }
 
+  void _handleSave() {
+    final missingFields = _validateForm();
+
+    if (missingFields.isNotEmpty) {
+      // Show error dialog with missing fields
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Fehlende Pflichtfelder'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Bitte füllen Sie folgende Felder aus:'),
+                const SizedBox(height: 12),
+                ...missingFields.map((field) => Padding(
+                  padding: const EdgeInsets.only(bottom: 4.0),
+                  child: Text('• $field', style: const TextStyle(fontWeight: FontWeight.w500)),
+                )),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
+
+    // Validation passed, call onSave
+    widget.onSave!(answers);
+  }
+
   @override
   Widget build(BuildContext context) {
     final allWidgets = <Widget>[];
@@ -257,7 +346,7 @@ class _AnnotationFormContentState extends State<AnnotationFormContent> {
             width: double.infinity,
             height: 48.0,
             child: ElevatedButton(
-              onPressed: () => widget.onSave!(answers),
+              onPressed: _handleSave,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.primary,
                 foregroundColor: Colors.white,
