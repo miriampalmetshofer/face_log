@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/annotation_category.dart';
+import '../example_image_dialog.dart';
 
 class SingleChoiceDropdown extends StatelessWidget {
   final AnnotationCategory category;
@@ -27,6 +28,19 @@ class SingleChoiceDropdown extends StatelessWidget {
             horizontal: 12.0,
             vertical: 8.0,
           ),
+          suffixIcon: category.exampleImage != null
+              ? IconButton(
+                  icon: const Icon(Icons.info_outline),
+                  onPressed: () {
+                    ExampleImageDialog.show(
+                      context,
+                      category.title,
+                      category.exampleImage!,
+                    );
+                  },
+                  tooltip: 'Beispiele anzeigen',
+                )
+              : null,
         ),
         initialValue: currentValue,
         isExpanded: true,

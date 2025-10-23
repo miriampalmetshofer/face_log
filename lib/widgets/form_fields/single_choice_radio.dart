@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/annotation_category.dart';
+import '../example_image_dialog.dart';
 
 class SingleChoiceRadio extends StatelessWidget {
   final AnnotationCategory category;
@@ -25,13 +26,33 @@ class SingleChoiceRadio extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            category.title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  category.title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
+                  ),
+                ),
+              ),
+              if (category.exampleImage != null)
+                IconButton(
+                  icon: const Icon(Icons.info_outline, size: 20),
+                  onPressed: () {
+                    ExampleImageDialog.show(
+                      context,
+                      category.title,
+                      category.exampleImage!,
+                    );
+                  },
+                  tooltip: 'Beispiele anzeigen',
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+            ],
           ),
           const SizedBox(height: 8),
           ...category.options.map((o) {

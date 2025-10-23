@@ -20,6 +20,7 @@
               "title": "Lichtqualität",
               "input_type": "single_choice",
               "visible_if": "environment:indoor",
+              "example_image": "assets/examples/lighting_examples.png",
               "options": [
                 { "id": "well_lit", "label": "Mein Gesicht ist gut ausgeleuchtet (Tageslicht vom Fenster, gleichmäßig beleuchteter Raum)" },
                 { "id": "strong_shadows", "label": "Deutliche Schatten im Gesicht, manche Teile des Gesichts sind deutlich stärker beleuchtet als andere (starkes Licht von einer Seite)" },
@@ -31,6 +32,7 @@
               "title": "Lichtqualität",
               "input_type": "single_choice",
               "visible_if": "environment:outdoor",
+              "example_image": "assets/examples/lighting.png",
               "options": [
                 { "id": "well_lit", "label": "Mein Gesicht ist gut ausgeleuchtet (Diffuses Licht, bewölkt aber hell)" },
                 { "id": "strong_shadows", "label": "Deutliche Schatten (direktes Sonnenlicht)" },
@@ -55,12 +57,13 @@
       "subcategories": [
         {
           "id": "angle",
-          "title": "Das Handy war so positioniert...",
+          "title": "Das Handy war so positioniert- dass meine Augen eher ... blickten",
           "input_type": "single_choice",
+          "example_image": "assets/examples/angle.png",
           "options": [
-            { "id": "downward", "label": "...dass meine Augen eher nach unten blickten" },
-            { "id": "straight_ahead", "label": "...dass meine Augen gerade aus richten konnten" },
-            { "id": "upward", "label": "...dass meine Augen eher nach oben blickten" }
+            { "id": "downward", "label": "nach unten" },
+            { "id": "straight", "label": "gerade aus" },
+            { "id": "upward", "label": "nach oben" }
           ]
         }
       ]

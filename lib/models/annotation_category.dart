@@ -5,6 +5,7 @@ class AnnotationCategory {
   final List<AnnotationOption> options;
   final List<AnnotationCategory> subcategories;
   final String? visibleIf; // Format: "parentId:optionId" e.g., "umgebung:innenraum"
+  final String? exampleImage; // Path to example image asset
 
   AnnotationCategory({
     required this.id,
@@ -13,6 +14,7 @@ class AnnotationCategory {
     this.options = const [],
     this.subcategories = const [],
     this.visibleIf,
+    this.exampleImage,
   });
 
   factory AnnotationCategory.fromJson(Map<String, dynamic> json) {
@@ -21,6 +23,7 @@ class AnnotationCategory {
       title: json['title'],
       inputType: json['input_type'],
       visibleIf: json['visible_if'],
+      exampleImage: json['example_image'],
       options:
           (json['options'] as List<dynamic>?)
               ?.map((o) => AnnotationOption.fromJson(o))
@@ -40,6 +43,7 @@ class AnnotationCategory {
       'title': title,
       'input_type': inputType,
       'visible_if': visibleIf,
+      'example_image': exampleImage,
       'options': options.map((o) => o.toJson()).toList(),
       'subcategories': subcategories.map((c) => c.toJson()).toList(),
     };

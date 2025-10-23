@@ -52,7 +52,6 @@ flutter run --profile -d <ios_device>
 ```
 
 ---
-
 ## Permissions
 
 Make sure `ios/Runner/Info.plist` includes:
