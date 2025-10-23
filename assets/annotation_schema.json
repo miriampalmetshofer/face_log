@@ -1,217 +1,197 @@
 {
   "categories": [
     {
-      "id": "umgebung_header",
+      "id": "environment_header",
       "title": "Umgebung / Lichtbedingung",
       "input_type": "header",
       "options": [],
       "subcategories": [
         {
-          "id": "umgebung",
+          "id": "environment",
           "title": "Umgebung",
           "input_type": "single_choice",
           "options": [
-            { "id": "innenraum", "label": "Innenraum" },
-            { "id": "aussenbereich", "label": "Außenbereich" }
+            { "id": "indoor", "label": "Innenraum" },
+            { "id": "outdoor", "label": "Außenbereich" }
           ],
-      "subcategories": [
-        {
-          "id": "innenbeleuchtung_lichtquelle",
-          "title": "Lichtquelle (Innenbeleuchtung)",
-          "input_type": "multiple_choice",
-          "visible_if": "umgebung:innenraum",
-          "options": [
-            { "id": "kuenstlich_weich", "label": "Künstlich, weich (diffus)" },
-            { "id": "kuenstlich_hart", "label": "Künstlich, hart (direkt)" },
-            { "id": "tageslicht", "label": "Tageslicht durch Fenster" },
-            { "id": "gemischt", "label": "Gemischte Lichtquellen (Fenster + künstlich)" },
-            { "id": "keine", "label": "Keine zusätzliche Lichtquelle (dunkel)" }
+          "subcategories": [
+            {
+              "id": "light_quality_outdoor",
+              "title": "Lichtqualität",
+              "input_type": "single_choice",
+              "visible_if": "environment:indoor",
+              "options": [
+                { "id": "well_lit", "label": "Mein Gesicht ist gut ausgeleuchtet (Tageslicht vom Fenster, gleichmäßig beleuchteter Raum)" },
+                { "id": "strong_shadows", "label": "Deutliche Schatten im Gesicht, manche Teile des Gesichts sind deutlich stärker beleuchtet als andere (starkes Licht von einer Seite)" },
+                { "id": "very_dark", "label": "Sehr dunkel (schwach beleuchteter Raum, starkes Licht von hinten das Gesicht schwach beleuchtet erscheinen lässt)" }
+              ]
+            },
+            {
+              "id": "light_quality_indoor",
+              "title": "Lichtqualität",
+              "input_type": "single_choice",
+              "visible_if": "environment:outdoor",
+              "options": [
+                { "id": "well_lit", "label": "Mein Gesicht ist gut ausgeleuchtet (Diffuses Licht, bewölkt aber hell)" },
+                { "id": "strong_shadows", "label": "Deutliche Schatten (direktes Sonnenlicht)" },
+                { "id": "very_dark", "label": "Sehr dunkel (Abends mit schwacher Beleuchtung)" }
+              ]
+            },
+            {
+              "id": "light_change",
+              "title": "Die Beleuchtung hat sich im Laufe der Aufnahme geändert (Licht abgedreht, Platz gewechselt)",
+              "input_type": "checkbox",
+              "options": []
+            }
           ]
-        },
-        {
-          "id": "innenbeleuchtung_richtung",
-          "title": "Lichtrichtung (Innenbeleuchtung)",
-          "input_type": "multiple_choice",
-          "visible_if": "umgebung:innenraum",
-          "options": [
-            { "id": "von_vorne", "label": "Licht von vorne" },
-            { "id": "von_seite", "label": "Licht von der Seite" },
-            { "id": "gegenlicht", "label": "Gegenlicht (z. B. durch Fenster/Tür)" },
-            { "id": "von_oben", "label": "Licht von oben" },
-            { "id": "mehrere", "label": "Licht von mehreren Richtungen / keine bestimmte Richtung" }
-          ]
-        },
-        {
-          "id": "aussenbeleuchtung_natuerlich",
-          "title": "Natürliches Licht (Außenbeleuchtung)",
-          "input_type": "multiple_choice",
-          "visible_if": "umgebung:aussenbereich",
-          "options": [
-            { "id": "direkt_sonne", "label": "Direktes Sonnenlicht" },
-            { "id": "diffus", "label": "Diffuses Licht (bewölkt)" },
-            { "id": "schatten", "label": "Schatten / schattiger Bereich" },
-            { "id": "strassenlaternen", "label": "Straßenlaternen / künstliches Außenlicht" }
-          ]
-        },
-        {
-          "id": "aussenbeleuchtung_tageszeit",
-          "title": "Tageszeit (Außenbeleuchtung)",
-          "input_type": "single_choice",
-          "visible_if": "umgebung:aussenbereich",
-          "options": [
-            { "id": "tag", "label": "Tag" },
-            { "id": "abend", "label": "Abend / Dämmerung" },
-            { "id": "nacht", "label": "Nacht" }
-          ]
-        }
-      ]
         }
       ]
     },
     {
-      "id": "helligkeit",
-      "title": "Helligkeit",
+      "id": "angle_header",
+      "title": "Kamerawinkel",
       "input_type": "header",
       "options": [],
       "subcategories": [
         {
-          "id": "helligkeit_global",
-          "title": "Helligkeit",
+          "id": "angle",
+          "title": "Das Handy war so positioniert...",
           "input_type": "single_choice",
           "options": [
-            { "id": "dunkel", "label": "Dunkel (gedimmt)" },
-            { "id": "mittel", "label": "Mittel (normal)" },
-            { "id": "hell", "label": "Hell (Sonne / starke Lampe)" }
+            { "id": "downward", "label": "...dass meine Augen eher nach unten blickten" },
+            { "id": "straight_ahead", "label": "...dass meine Augen gerade aus richten konnten" },
+            { "id": "upward", "label": "...dass meine Augen eher nach oben blickten" }
           ]
         }
       ]
     },
     {
-      "id": "bewegung",
+      "id": "movement",
       "title": "Bewegung / Aktivität",
       "input_type": "header",
       "options": [],
       "subcategories": [
         {
-          "id": "hauptbewegung",
+          "id": "main_movement",
           "title": "Hauptbewegung",
           "input_type": "single_choice",
           "options": [
-            { "id": "sitzen", "label": "Sitzen" },
-            { "id": "stehen", "label": "Stehen" },
-            { "id": "gehen", "label": "Gehen" },
-            { "id": "liegen", "label": "Liegen" },
-            { "id": "fahrzeug", "label": "Im Fahrzeug (Auto, Bus, Bahn)" },
-            { "id": "sport", "label": "Sport / Bewegung (z. B. Laufband, Radfahren)" }
+            { "id": "sitting", "label": "Sitzen" },
+            { "id": "standing", "label": "Stehen" },
+            { "id": "walking", "label": "Gehen" },
+            { "id": "lying", "label": "Liegen" }
           ]
         },
         {
-          "id": "weitere_bewegungen",
+          "id": "position_change",
+          "title": "Position während der Aufnahme gewechselt",
+          "input_type": "checkbox",
+          "options": []
+        },
+        {
+          "id": "additional_movements",
           "title": "Weitere Bewegungen",
           "input_type": "multiple_choice",
+          "visible_if": "position_change:true",
           "options": [
-            { "id": "sitzen", "label": "Sitzen" },
-            { "id": "stehen", "label": "Stehen" },
-            { "id": "gehen", "label": "Gehen" },
-            { "id": "liegen", "label": "Liegen" },
-            { "id": "fahrzeug", "label": "Im Fahrzeug" },
-            { "id": "sport", "label": "Sport / Bewegung" }
+            { "id": "sitting", "label": "Sitzen" },
+            { "id": "standing", "label": "Stehen" },
+            { "id": "walking", "label": "Gehen" },
+            { "id": "lying", "label": "Liegen" }
           ]
         }
       ]
     },
     {
-      "id": "geraeteposition",
-      "title": "Geräteposition",
+      "id": "device_movement_header",
+      "title": "Bewegung des Geräts",
       "input_type": "header",
       "options": [],
       "subcategories": [
         {
-          "id": "geraeteposition_wahl",
-          "title": "Geräteposition",
+          "id": "device_movement",
+          "title": "Gerätebewegung",
           "input_type": "single_choice",
           "options": [
-            { "id": "hand_stabil", "label": "In der Hand (stabil)" },
-            { "id": "hand_wackelig", "label": "In der Hand (wackelig)" },
-            { "id": "tisch", "label": "Am Tisch liegend" },
-            { "id": "angelehnt", "label": "An Gegenstand angelehnt" }
+            { "id": "stable", "label": "Das Bild bleibt ruhig. Du hältst das Handy besonders still in der Hand, es liegt auf dem Tisch oder ist irgendwo angelehnt." },
+            { "id": "slight_movement", "label": "Leichte/natürliche Bewegung oder Wackeln. Du hältst das Handy in der Hand und bewegst dich leicht – z. B. beim Tippen, leichtem Gehen." },
+            { "id": "significant_movement", "label": "Das Bild bewegt sich deutlich/ist immer wieder verwackelt. Die Bewegung reicht über natürliche Bewegungen beim Display bedienen hinaus. Du gehst oder läufst während der Aufnahme, steigst Treppen, sitzt in einem fahrenden Fahrzeug mit Erschütterungen etc." }
           ]
         }
       ]
     },
     {
-      "id": "kopf_gesicht",
-      "title": "Kopf- & Gesichtsposition",
+      "id": "visibility",
+      "title": "Sichtbarkeit",
       "input_type": "header",
       "options": [],
       "subcategories": [
         {
-          "id": "ausrichtung",
-          "title": "Ausrichtung",
-          "input_type": "single_choice",
-          "options": [
-            { "id": "gerade", "label": "Gerade nach vorne" },
-            { "id": "leicht_gedreht", "label": "Leicht gedreht (<90°)" },
-            { "id": "stark_gedreht", "label": "Stark gedreht (>90°)" },
-            { "id": "geneigt", "label": "Stark nach oben/unten geneigt (wegen Geräteposition)" }
-          ]
-        },
-        {
-          "id": "verdeckungen",
+          "id": "occlusions",
           "title": "Verdeckungen",
           "input_type": "multiple_choice",
           "options": [
-            { "id": "brille", "label": "Brille" },
-            { "id": "haare", "label": "Haare teilweise im Gesicht" },
+            { "id": "glasses", "label": "Brille" },
+            { "id": "hair", "label": "Haare teilweise im Gesicht" },
             { "id": "hand", "label": "Hand verdeckt Gesicht" },
-            { "id": "essen", "label": "Essen/Trinken während Nutzung" }
+            { "id": "eating", "label": "Essen/Trinken während Nutzung" }
+          ]
+        },
+        {
+          "id": "face_visibility",
+          "title": "Gesichtsabwendung",
+          "input_type": "multiple_choice",
+          "options": [
+            { "id": "gaze_averted", "label": "Ich habe meinen Blick vom Display abgewendet um z.B. mit jemandem zu sprechen, zu überlegen etc. Dabei waren nur Teile meines Gesichtes für mehr als 2 Sekunden sichtbar" },
+            { "id": "face_turned_away", "label": "Ich habe Gesicht für mehr als 2 Sekunden am Stück deutlich abgewendet (Hauptgesichtmerkmale wie Nase, Augen, Mund waren nicht sichtbar)" },
+            { "id": "head_outside", "label": "Mein Kopf war länger als 2 Sekunden total außerhalb der Kamera" }
           ]
         }
       ]
     },
     {
-      "id": "hintergrund",
+      "id": "background_header",
       "title": "Hintergrund",
       "input_type": "header",
       "options": [],
       "subcategories": [
         {
-          "id": "hintergrund_wahl",
+          "id": "background",
           "title": "Hintergrund",
           "input_type": "multiple_choice",
           "options": [
-            { "id": "schlicht", "label": "Schlichter / ruhiger Hintergrund" },
-            { "id": "veraenderlich", "label": "Veränderlicher Hintergrund (bewegte Objekte, Ortswechsel)" },
-            { "id": "personen", "label": "Personen im Hintergrund" },
-            { "id": "dynamisch", "label": "Dynamischer Außenbereich (Autos, Bäume, Passanten)" }
+            { "id": "plain", "label": "Schlichter / ruhiger Hintergrund" },
+            { "id": "changing", "label": "Veränderlicher Hintergrund (bewegte Objekte, Ortswechsel)" },
+            { "id": "people", "label": "Personen im Hintergrund" }
           ]
         }
       ]
     },
     {
-      "id": "soziale_situation",
+      "id": "interactions_header",
       "title": "Soziale Situation",
       "input_type": "header",
       "options": [],
       "subcategories": [
         {
-          "id": "soziale_situation_wahl",
-          "title": "Soziale Situation",
+          "id": "interactions",
+          "title": "Interaktionen",
           "input_type": "multiple_choice",
           "options": [
-            { "id": "gespraech", "label": "Gespräch mit jemandem" }
+            { "id": "conversation", "label": "Ich habe mit jemandem gesprochen während der Aufnahme" },
+            { "id": "person_visible", "label": "Eine andere Person war während der Aufnahme zu sehen" }
           ]
         }
       ]
     },
     {
-      "id": "notizen",
+      "id": "notes_header",
       "title": "Notizen (optional)",
       "input_type": "header",
       "options": [],
       "subcategories": [
         {
-          "id": "notizen_text",
+          "id": "notes",
           "title": "Notizen (optional)",
           "input_type": "text",
           "options": []

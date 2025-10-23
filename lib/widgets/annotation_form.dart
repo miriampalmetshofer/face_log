@@ -6,6 +6,7 @@ import 'form_fields/single_choice_radio.dart';
 import 'form_fields/multiple_choice_checkboxes.dart';
 import 'form_fields/text_input_field.dart';
 import 'form_fields/form_header.dart';
+import 'form_fields/checkbox_field.dart';
 
 class AnnotationForm extends StatefulWidget {
   final List<AnnotationCategory> categories;
@@ -65,6 +66,13 @@ class _AnnotationFormState extends State<AnnotationForm> {
         return TextInputField(
           category: category,
           currentValue: answers[category.id] as String?,
+          onChanged: (val) => setState(() => answers[category.id] = val),
+        );
+
+      case "checkbox":
+        return CheckboxField(
+          category: category,
+          currentValue: answers[category.id] == true,
           onChanged: (val) => setState(() => answers[category.id] = val),
         );
 
@@ -209,6 +217,16 @@ class _AnnotationFormContentState extends State<AnnotationFormContent> {
         return TextInputField(
           category: category,
           currentValue: answers[category.id] as String?,
+          onChanged: (val) {
+            setState(() => answers[category.id] = val);
+            _notifyFormChanged();
+          },
+        );
+
+      case "checkbox":
+        return CheckboxField(
+          category: category,
+          currentValue: answers[category.id] == true,
           onChanged: (val) {
             setState(() => answers[category.id] = val);
             _notifyFormChanged();

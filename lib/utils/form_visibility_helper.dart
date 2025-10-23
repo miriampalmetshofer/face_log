@@ -16,6 +16,12 @@ class FormVisibilityHelper {
 
     final parentAnswer = answers[parentId];
 
+    // For checkbox, check if the boolean value matches
+    if (requiredOptionId == 'true' || requiredOptionId == 'false') {
+      final requiredBool = requiredOptionId == 'true';
+      return parentAnswer == requiredBool;
+    }
+
     // For single choice, check if the answer matches
     if (parentAnswer is String) {
       return parentAnswer == requiredOptionId;
