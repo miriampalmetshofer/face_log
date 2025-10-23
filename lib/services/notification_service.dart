@@ -86,7 +86,7 @@ class NotificationService {
   }) async {
     await _notifications.zonedSchedule(
       0, // Notification ID
-      'Zeit für deine Video-Aufnahme',
+      '⚠️ Zeit für deine Video-Aufnahme',
       'Bitte nimm ein 5-minütiges Video auf.',
       _nextInstanceOfTime(hour, minute),
       const NotificationDetails(
