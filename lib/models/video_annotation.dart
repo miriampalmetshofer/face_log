@@ -9,12 +9,25 @@ class VideoAnnotation {
     required this.timestamp,
   });
 
-  // Serialize to JSON
+  // Serialize to JSON (for local storage)
   Map<String, dynamic> toJson() {
     return {
       'videoPath': videoPath,
       'answers': answers,
       'timestamp': timestamp.toIso8601String(),
+    };
+  }
+
+  // Serialize to JSON for Firebase upload
+  Map<String, dynamic> toUploadJson(String userName) {
+    // Extract just the filename from the full path
+    final fileName = videoPath.split('/').last;
+
+    return {
+      'user': userName,
+      'video_filename': fileName,
+      'timestamp': timestamp.toIso8601String(),
+      'annotations': answers,
     };
   }
 

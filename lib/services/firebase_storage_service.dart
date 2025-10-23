@@ -41,8 +41,8 @@ class FirebaseStorageService {
       // Replace .mp4 extension with .json
       final jsonFileName = fileName.replaceAll('.mp4', '.json');
 
-      // Convert annotation to JSON string
-      final jsonString = json.encode(annotation.toJson());
+      // Convert annotation to JSON string using upload format
+      final jsonString = json.encode(annotation.toUploadJson(userName ?? 'unknown'));
       final jsonBytes = utf8.encode(jsonString);
 
       // Sanitize username for Firebase Storage path (remove special characters)
