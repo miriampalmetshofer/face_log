@@ -27,7 +27,7 @@ class CameraManager {
     _controller = CameraController(
       selectedCamera,
       ResolutionPreset.high,
-      enableAudio: true,
+      enableAudio: false,
       imageFormatGroup: CameraIO.platformImageFormat(),
     );
 
