@@ -134,6 +134,7 @@
           "title": "Verdeckungen",
           "input_type": "multiple_choice",
           "options": [
+            { "id": "none", "label": "Keine Verdeckung" },
             { "id": "glasses", "label": "Brille" },
             { "id": "hair", "label": "Haare teilweise im Gesicht" },
             { "id": "hand", "label": "Hand verdeckt Gesicht" },
@@ -145,6 +146,7 @@
           "title": "Gesichtsabwendung",
           "input_type": "multiple_choice",
           "options": [
+            { "id": "none", "label": "Gesicht nicht länger als 2 Sekunden abgewendet" },
             { "id": "gaze_averted", "label": "Ich habe meinen Blick vom Display abgewendet um z.B. mit jemandem zu sprechen, zu überlegen etc. Dabei waren nur Teile meines Gesichtes für mehr als 2 Sekunden sichtbar" },
             { "id": "face_turned_away", "label": "Ich habe Gesicht für mehr als 2 Sekunden am Stück deutlich abgewendet (Hauptgesichtmerkmale wie Nase, Augen, Mund waren nicht sichtbar)" },
             { "id": "head_outside", "label": "Mein Kopf war länger als 2 Sekunden total außerhalb der Kamera" }
@@ -181,6 +183,7 @@
           "title": "Interaktionen",
           "input_type": "multiple_choice",
           "options": [
+            { "id": "none", "label": "Keine sozialen Interaktionen" },
             { "id": "conversation", "label": "Ich habe mit jemandem gesprochen während der Aufnahme" },
             { "id": "person_visible", "label": "Eine andere Person war während der Aufnahme zu sehen" }
           ]
