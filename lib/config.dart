@@ -1,12 +1,12 @@
 class AppConfig {
   // Recording
-  static const int maxRecordingDuration = 60 * 3; // 3 minutes
+  static const int maxRecordingDuration = 60 * 5;
 
   // Upload timeouts
   static const int uploadTimeoutSecondsPerMB = 2;
   static const int uploadTimeoutBaseSeconds = 30;
   static const int uploadTimeoutMinSeconds = 30;
-  static const int uploadTimeoutMaxSeconds = 300; // 5 minutes
+  static const int uploadTimeoutMaxSeconds = 60 * 5;
 
   // Video player
   static const int videoPlayerSkipSeconds = 5;
