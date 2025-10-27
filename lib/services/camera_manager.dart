@@ -29,16 +29,13 @@ class CameraManager {
       AppConfig.cameraResolutionPreset,
       enableAudio: false,
       imageFormatGroup: CameraIO.platformImageFormat(),
+      fps: AppConfig.cameraFrameRate,
     );
 
     await _controller!.initialize();
 
     // Pause preview to prevent buffer warnings on Android
     await _controller!.pausePreview();
-
-    // Debug: Print actual aspect ratio
-    final aspectRatio = _controller!.value.aspectRatio;
-    print('Camera aspect ratio: $aspectRatio (${(aspectRatio).toStringAsFixed(2)})');
 
     final lensType = selectedCamera.lensDirection == CameraLensDirection.front ? "Front" : "Rück";
     onStatusChange?.call('Kamera bereit (${lensType}kamera)');
