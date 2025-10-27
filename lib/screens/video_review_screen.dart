@@ -324,11 +324,7 @@ class _VideoReviewScreenState extends State<VideoReviewScreen> {
                         aspectRatio: _controller.value.aspectRatio,
                         child: VideoPlayer(_controller),
                       )
-                    : AspectRatio(
-                        aspectRatio:
-                            16 / 9,
-                        child: Center(child: const CircularProgressIndicator()),
-                      ),
+                    : const Center(child: CircularProgressIndicator()),
               ),
             ),
 

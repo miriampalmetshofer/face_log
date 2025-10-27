@@ -1,4 +1,9 @@
+import 'package:camera/camera.dart';
+
 class AppConfig {
+  // Camera
+  static const ResolutionPreset cameraResolutionPreset = ResolutionPreset.medium;
+
   // Recording
   static const int maxRecordingDuration = 60 * 5;
 

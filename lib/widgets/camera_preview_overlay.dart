@@ -55,10 +55,7 @@ class CameraPreviewOverlay extends StatelessWidget {
           Expanded(
             child: controller.value.isInitialized
                 ? Center(
-                    child: AspectRatio(
-                      aspectRatio: 1 / controller.value.aspectRatio,
-                      child: CameraPreview(controller),
-                    ),
+                    child: CameraPreview(controller),
                   )
                 : const Center(child: CircularProgressIndicator()),
           ),
