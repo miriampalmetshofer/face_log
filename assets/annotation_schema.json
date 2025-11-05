@@ -16,7 +16,7 @@
           ],
           "subcategories": [
             {
-              "id": "light_quality_outdoor",
+              "id": "light_quality_indoor",
               "title": "Lichtqualität",
               "input_type": "single_choice",
               "visible_if": "environment:indoor",
@@ -28,7 +28,7 @@
               ]
             },
             {
-              "id": "light_quality_indoor",
+              "id": "light_quality_outdoor",
               "title": "Lichtqualität",
               "input_type": "single_choice",
               "visible_if": "environment:outdoor",
