@@ -8,35 +8,37 @@
       "subcategories": [
         {
           "id": "environment",
-          "title": "Umgebung",
+          "title": " Wo hast du dich befunden?",
           "input_type": "single_choice",
           "options": [
-            { "id": "indoor", "label": "Innenraum" },
-            { "id": "outdoor", "label": "Außenbereich" }
+            {
+              "id": "indoor",
+              "label": "Innenraum"
+            },
+            {
+              "id": "outdoor",
+              "label": "Außenbereich"
+            }
           ],
           "subcategories": [
             {
-              "id": "light_quality",
-              "title": "Lichtqualität",
+              "id": "illumination",
+              "title": "Wie gut war dein Gesicht beleuchtet?",
               "input_type": "single_choice",
-              "visible_if": "environment:indoor",
-              "example_image": "assets/examples/lighting_examples.png",
-              "options": [
-                { "id": "well_lit", "label": "Mein Gesicht ist gut ausgeleuchtet (Tageslicht vom Fenster, gleichmäßig beleuchteter Raum)" },
-                { "id": "strong_shadows", "label": "Deutliche Schatten im Gesicht, manche Teile des Gesichts sind deutlich stärker beleuchtet als andere (starkes Licht von einer Seite)" },
-                { "id": "very_dark", "label": "Sehr dunkel (schwach beleuchteter Raum, starkes Licht von hinten das Gesicht schwach beleuchtet erscheinen lässt)" }
-              ]
-            },
-            {
-              "id": "light_quality",
-              "title": "Lichtqualität",
-              "input_type": "single_choice",
-              "visible_if": "environment:outdoor",
               "example_image": "assets/examples/lighting.png",
               "options": [
-                { "id": "well_lit", "label": "Mein Gesicht ist gut ausgeleuchtet (Diffuses Licht, bewölkt aber hell)" },
-                { "id": "strong_shadows", "label": "Deutliche Schatten (direktes Sonnenlicht)" },
-                { "id": "very_dark", "label": "Sehr dunkel (Abends mit schwacher Beleuchtung)" }
+                {
+                  "id": "well_lit",
+                  "label": "Gut ausgeleuchtet."
+                },
+                {
+                  "id": "shadows",
+                  "label": "Manche Teile meines Gesichts waren deutlich stärker beleuchtet als andere (z.B. starkes Licht von einer Seite)"
+                },
+                {
+                  "id": "poorly_lit",
+                  "label": "Aufgrund des Lichts, war es schwierig mein Gesicht zu erkennen (z.B. sehr dunkel oder starkes Licht von hinten)"
+                }
               ]
             },
             {
@@ -61,46 +63,49 @@
           "input_type": "single_choice",
           "example_image": "assets/examples/angle.png",
           "options": [
-            { "id": "downward", "label": "nach unten" },
-            { "id": "straight", "label": "gerade aus" },
-            { "id": "upward", "label": "nach oben" }
+            {
+              "id": "downward",
+              "label": "nach unten"
+            },
+            {
+              "id": "straight",
+              "label": "gerade aus"
+            },
+            {
+              "id": "upward",
+              "label": "nach oben"
+            }
           ]
         }
       ]
     },
     {
       "id": "movement",
-      "title": "Bewegung / Aktivität",
+      "title": "Bewegung(en)",
       "input_type": "header",
       "options": [],
       "subcategories": [
         {
-          "id": "main_movement",
-          "title": "Hauptbewegung",
-          "input_type": "single_choice",
-          "options": [
-            { "id": "sitting", "label": "Sitzen" },
-            { "id": "standing", "label": "Stehen" },
-            { "id": "walking", "label": "Gehen" },
-            { "id": "lying", "label": "Liegen" }
-          ]
-        },
-        {
-          "id": "position_change",
-          "title": "Position während der Aufnahme gewechselt",
-          "input_type": "checkbox",
-          "options": []
-        },
-        {
-          "id": "additional_movements",
-          "title": "Weitere Bewegungen",
+          "id": "movement",
+          "title": "Was hast du gemacht? (Mehrfachauswahl möglich)",
           "input_type": "multiple_choice",
-          "visible_if": "position_change:true",
           "options": [
-            { "id": "sitting", "label": "Sitzen" },
-            { "id": "standing", "label": "Stehen" },
-            { "id": "walking", "label": "Gehen" },
-            { "id": "lying", "label": "Liegen" }
+            {
+              "id": "sitting",
+              "label": "Sitzen"
+            },
+            {
+              "id": "standing",
+              "label": "Stehen"
+            },
+            {
+              "id": "walking",
+              "label": "Gehen"
+            },
+            {
+              "id": "lying",
+              "label": "Liegen"
+            }
           ]
         }
       ]
@@ -113,12 +118,21 @@
       "subcategories": [
         {
           "id": "device_movement",
-          "title": "Gerätebewegung",
+          "title": "Wie stabil war die Aufnahme?",
           "input_type": "single_choice",
           "options": [
-            { "id": "stable", "label": "Das Bild bleibt ruhig. Du hältst das Handy besonders still in der Hand, es liegt auf dem Tisch oder ist irgendwo angelehnt." },
-            { "id": "slight_movement", "label": "Leichte/natürliche Bewegung oder Wackeln. Du hältst das Handy in der Hand und bewegst dich leicht – z. B. beim Tippen, leichtem Gehen." },
-            { "id": "significant_movement", "label": "Das Bild bewegt sich deutlich/ist immer wieder verwackelt. Die Bewegung reicht über natürliche Bewegungen beim Display bedienen hinaus. Du gehst oder läufst während der Aufnahme, steigst Treppen, sitzt in einem fahrenden Fahrzeug mit Erschütterungen etc." }
+            {
+              "id": "slight_movement",
+              "label": "Leichte Bewegung. Ich hielt das Handy in der Hand und hab mich leicht bewegt (z. B. beim Tippen, leichtem Gehen)."
+            },
+            {
+              "id": "stable",
+              "label": "Das Bild war besonders ruhig. Ich hatte das Handy besonders still in der Hand, es lag auf dem Tisch oder war irgendwo angelehnt."
+            },
+            {
+              "id": "significant_movement",
+              "label": "Das Bild war deutlich verwackelt. Die Bewegung reichte über natürliche Bewegungen beim Display bedienen hinaus (z.B. laufen)."
+            }
           ]
         }
       ]
@@ -131,61 +145,63 @@
       "subcategories": [
         {
           "id": "occlusions",
-          "title": "Verdeckungen",
+          "title": "Wurde dein Gesicht durch etwas verdeckt? (Mehrfachauswahl möglich)",
           "input_type": "multiple_choice",
           "options": [
-            { "id": "none", "label": "Keine Verdeckung" },
-            { "id": "glasses", "label": "Brille" },
-            { "id": "hair", "label": "Haare teilweise im Gesicht" },
-            { "id": "hand", "label": "Hand verdeckt Gesicht" },
-            { "id": "eating", "label": "Essen/Trinken während Nutzung" }
+            {
+              "id": "none",
+              "label": "Keine Verdeckung"
+            },
+            {
+              "id": "glasses",
+              "label": "Ich habe eine Brille getragen."
+            },
+            {
+              "id": "hand",
+              "label": "Meine Hand hat Teile meines Gesichts länger als 2 Sekunden verdeckt (z.B. Kopf abstützen)"
+            },
+            {
+              "id": "eating",
+              "label": "Essen/Trinken während Nutzung"
+            },
+            {
+              "id": "hat",
+              "label": "Ich habe eine Kopfbedeckung getragen (z.B. Haube, Kapperl, Hut, Kapuze etc.)"
+            },
+            {
+              "id": "other",
+              "label": "Etwas anderes hat Teile meines Gesichts verdeckt."
+            }
           ]
         },
         {
           "id": "face_visibility",
-          "title": "Gesichtsabwendung",
-          "input_type": "multiple_choice",
+          "title": "War dein Gesicht durchgehend sichtbar?",
+          "input_type": "single_choice",
           "options": [
-            { "id": "none", "label": "Gesicht nicht länger als 2 Sekunden abgewendet" },
-            { "id": "gaze_averted", "label": "Ich habe meinen Blick vom Display abgewendet um z.B. mit jemandem zu sprechen, zu überlegen etc. Dabei waren nur Teile meines Gesichtes für mehr als 2 Sekunden sichtbar" },
-            { "id": "face_turned_away", "label": "Ich habe Gesicht für mehr als 2 Sekunden am Stück deutlich abgewendet (Hauptgesichtmerkmale wie Nase, Augen, Mund waren nicht sichtbar)" },
-            { "id": "head_outside", "label": "Mein Kopf war länger als 2 Sekunden total außerhalb der Kamera" }
+            {
+              "id": "visible",
+              "label": "Mein Gesicht war durchgehend gut sichtbar"
+            },
+            {
+              "id": "turned_away",
+              "label": "Mein Gesicht war länger als 2 Sekunden am Stück deutlich abgewendet"
+            }
           ]
-        }
-      ]
-    },
-    {
-      "id": "background_header",
-      "title": "Hintergrund",
-      "input_type": "header",
-      "options": [],
-      "subcategories": [
+        },
         {
-          "id": "background",
-          "title": "Hintergrund",
-          "input_type": "multiple_choice",
+          "id": "other_people",
+          "title": "Waren andere Personen im Bild?",
+          "input_type": "single_choice",
           "options": [
-            { "id": "plain", "label": "Schlichter / ruhiger Hintergrund" },
-            { "id": "changing", "label": "Veränderlicher Hintergrund (bewegte Objekte, Ortswechsel)" },
-            { "id": "people", "label": "Personen im Hintergrund" }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "interactions_header",
-      "title": "Soziale Situation",
-      "input_type": "header",
-      "options": [],
-      "subcategories": [
-        {
-          "id": "interactions",
-          "title": "Interaktionen",
-          "input_type": "multiple_choice",
-          "options": [
-            { "id": "none", "label": "Keine sozialen Interaktionen" },
-            { "id": "conversation", "label": "Ich habe mit jemandem gesprochen während der Aufnahme" },
-            { "id": "person_visible", "label": "Eine andere Person war während der Aufnahme zu sehen" }
+            {
+              "id": "none_others",
+              "label": "Keine anderen Personen zu sehen"
+            },
+            {
+              "id": "others_visible",
+              "label": "Das Gesicht einer oder mehrere Personen waren im Bild (z.B. im Hintergrund)"
+            }
           ]
         }
       ]
