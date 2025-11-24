@@ -142,9 +142,7 @@ class _VideoReviewScreenState extends State<VideoReviewScreen> {
     // Calculate timeout based on file size
     final file = File(widget.videoPath);
     final fileStat = await file.stat();
-    final fileSizeMB = fileStat.size / (1024 * 1024);
-    final timeoutSeconds = (fileSizeMB * AppConfig.uploadTimeoutSecondsPerMB).ceil() + AppConfig.uploadTimeoutBaseSeconds;
-    final timeout = Duration(seconds: timeoutSeconds.clamp(AppConfig.uploadTimeoutMinSeconds, AppConfig.uploadTimeoutMaxSeconds));
+    final timeout = Duration(seconds:AppConfig.uploadTimeoutMaxSeconds);
 
     // Show progress dialog
     final progressKey = GlobalKey<UploadProgressDialogState>();

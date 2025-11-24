@@ -156,9 +156,7 @@ class _VideoLibraryScreenState extends State<VideoLibraryScreen> {
     // Calculate timeout based on file size
     final file = File(filePath);
     final fileStat = await file.stat();
-    final fileSizeMB = fileStat.size / (1024 * 1024);
-    final timeoutSeconds = (fileSizeMB * AppConfig.uploadTimeoutSecondsPerMB).ceil() + AppConfig.uploadTimeoutBaseSeconds;
-    final timeout = Duration(seconds: timeoutSeconds.clamp(AppConfig.uploadTimeoutMinSeconds, AppConfig.uploadTimeoutMaxSeconds));
+    final timeout = Duration(seconds: AppConfig.uploadTimeoutMaxSeconds);
 
     // Show progress dialog
     final progressKey = GlobalKey<UploadProgressDialogState>();
