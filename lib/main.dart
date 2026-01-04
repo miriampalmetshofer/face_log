@@ -11,13 +11,18 @@ void main() async {
 
   await requestPermissions();
 
-  // Initialize notification service
-  final notificationService = NotificationService();
-  await notificationService.initialize();
-  await notificationService.requestPermissions();
+  try {
+    final notificationService = NotificationService();
+    await notificationService.initialize();
+    await notificationService.requestPermissions();
 
-  // Schedule daily reminder at 9:00 AM
-  await notificationService.scheduleDailyReminder(hour: 9, minute: 0);
+    // Schedule daily reminder at 9:00 AM
+    await notificationService.scheduleDailyReminder(hour: 9, minute: 0);
+    print('✅ Notifications initialized and scheduled successfully');
+  } catch (e, stackTrace) {
+    print('⚠️ Failed to initialize notifications: $e');
+    print('Stack trace: $stackTrace');
+  }
 
   runApp(const MyApp());
 }
